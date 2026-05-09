@@ -7,371 +7,179 @@
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap');
-
-:root {
-  --bg: #09090b;
-  --s1: #111113;
-  --s2: #18181b;
-  --s3: #27272a;
-  --border: #3f3f46;
-  --accent: #22d3ee;
-  --accent-dim: #083344;
-  --accent2: #f472b6;
-  --warn: #fb923c;
-  --danger: #f87171;
-  --green: #4ade80;
-  --text: #fafafa;
-  --muted: #71717a;
-  --muted2: #52525b;
-  --r: 12px;
-}
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-body { font-family: 'Space Grotesk', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
-
-/* ───── TOPBAR ───── */
-.topbar {
-  position: sticky; top: 0; z-index: 50;
-  background: rgba(9,9,11,.92);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border);
-  padding: 12px 16px;
-  display: flex; align-items: center; justify-content: space-between;
-}
-.logo {
-  font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800;
-  letter-spacing: -1px;
-  background: linear-gradient(90deg, var(--accent), var(--accent2));
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-}
-.topbar-right { display: flex; align-items: center; gap: 10px; }
-.badge-new {
-  background: var(--accent); color: #000;
-  font-size: 11px; font-weight: 700;
-  padding: 2px 7px; border-radius: 20px;
-}
-.admin-toggle {
-  background: var(--s3); border: 1px solid var(--border);
-  color: var(--muted); font-size: 18px;
-  width: 34px; height: 34px; border-radius: 8px;
-  cursor: pointer; display: flex; align-items: center; justify-content: center;
-  transition: all .2s;
-}
-.admin-toggle.on { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
-
-/* ───── VIEWS ───── */
-.view { display: none; }
-.view.active { display: block; }
-
-/* ───── TABS ───── */
-.tabs {
-  display: flex; gap: 6px;
-  padding: 12px 14px 8px;
-  overflow-x: auto; scrollbar-width: none;
-}
-.tabs::-webkit-scrollbar { display: none; }
-.tab {
-  flex-shrink: 0; padding: 5px 13px;
-  border-radius: 20px; font-size: 12px; font-weight: 600;
-  cursor: pointer; border: 1.5px solid var(--border);
-  background: transparent; color: var(--muted);
-  transition: all .18s;
-}
-.tab.active { background: var(--accent); color: #000; border-color: var(--accent); }
-
-/* ───── SORT / FILTER BAR ───── */
-.sort-bar {
-  display: flex; align-items: center; gap: 8px;
-  padding: 0 14px 10px; font-size: 12px; color: var(--muted);
-}
-.sort-btn {
-  background: var(--s2); border: 1px solid var(--border);
-  border-radius: 8px; color: var(--muted); font-family: inherit;
-  font-size: 12px; font-weight: 600; padding: 5px 10px;
-  cursor: pointer; transition: all .15s;
-}
-.sort-btn.active { color: var(--accent); border-color: var(--accent); background: var(--accent-dim); }
-.sort-label { margin-left: auto; }
-
-/* ───── SEARCH ───── */
-.search-wrap { position: relative; padding: 0 14px 10px; }
-.search-input {
-  width: 100%; background: var(--s1);
-  border: 1.5px solid var(--border); border-radius: var(--r);
-  color: var(--text); font-family: inherit; font-size: 14px;
-  padding: 10px 14px 10px 38px; outline: none;
-  transition: border-color .2s;
-}
-.search-input:focus { border-color: var(--accent); }
-.search-icon { position: absolute; left: 26px; top: 50%; transform: translateY(-50%); pointer-events: none; font-size: 15px; }
-
-/* ───── FEED ───── */
-#feed-view { padding-bottom: 80px; }
-
-.card {
-  margin: 0 12px 9px;
-  background: var(--s1); border: 1px solid var(--border);
-  border-radius: var(--r); padding: 13px 14px;
-  cursor: pointer; transition: border-color .15s, transform .1s;
-  animation: fadeUp .28s ease both;
-  position: relative;
-}
-.card:hover { border-color: var(--accent); }
-.card:active { transform: scale(.985); }
-.card.pending { border-color: var(--warn); opacity: .85; }
-.card.rejected { border-color: var(--danger); opacity: .7; }
-
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: none; }
-}
-
-.card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px; gap: 8px; }
-.card-cat {
-  font-size: 10px; font-weight: 700; text-transform: uppercase;
-  letter-spacing: .9px; padding: 3px 8px; border-radius: 5px;
-  background: var(--s3); color: var(--accent); flex-shrink: 0;
-}
-.card-price {
-  font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700;
-  color: var(--accent); white-space: nowrap;
-}
-.card-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; line-height: 1.35; }
-.card-desc {
-  font-size: 12px; color: var(--muted); line-height: 1.5;
-  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-}
-.card-footer {
-  display: flex; justify-content: space-between; align-items: center;
-  margin-top: 10px; padding-top: 9px; border-top: 1px solid var(--s3);
-  font-size: 11px; color: var(--muted);
-}
-.card-author { display: flex; align-items: center; gap: 5px; }
-.avatar {
-  width: 20px; height: 20px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 10px; font-weight: 800; color: #000; flex-shrink: 0;
-}
-.fav-btn {
-  position: absolute; top: 12px; right: 12px;
-  background: none; border: none; font-size: 17px;
-  cursor: pointer; padding: 2px; line-height: 1;
-  transition: transform .15s;
-}
-.fav-btn:active { transform: scale(1.3); }
-
-.status-dot {
-  display: inline-block; width: 7px; height: 7px;
-  border-radius: 50%; margin-right: 4px;
-}
-.dot-ok { background: var(--green); }
-.dot-pending { background: var(--warn); }
-.dot-rejected { background: var(--danger); }
-
-.empty { text-align: center; padding: 50px 20px; color: var(--muted); font-size: 14px; }
-.empty-icon { font-size: 38px; margin-bottom: 10px; }
-
-/* ───── DETAIL MODAL ───── */
-.modal-overlay {
-  display: none; position: fixed; inset: 0;
-  background: rgba(0,0,0,.75); z-index: 200;
-}
-.modal-overlay.open { display: flex; align-items: flex-end; animation: fadeIn .18s ease; }
-@keyframes fadeIn { from{opacity:0} to{opacity:1} }
-
-.modal {
-  background: var(--s1); border-radius: 20px 20px 0 0;
-  width: 100%; max-height: 88vh; overflow-y: auto;
-  padding: 18px 16px 36px;
-  animation: slideUp .22s ease;
-}
-@keyframes slideUp { from{transform:translateY(100%)} to{transform:none} }
-.modal-handle { width: 36px; height: 4px; background: var(--s3); border-radius: 2px; margin: 0 auto 16px; }
-.modal-cat { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .9px; color: var(--accent); margin-bottom: 5px; }
-.modal-title { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; line-height: 1.2; margin-bottom: 8px; }
-.modal-price { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; color: var(--accent); margin-bottom: 14px; }
-.modal-desc { font-size: 14px; line-height: 1.7; color: #ccc; margin-bottom: 18px; }
-.modal-meta {
-  background: var(--s2); border-radius: 10px;
-  padding: 12px 14px; margin-bottom: 16px;
-  display: flex; flex-direction: column; gap: 8px;
-}
-.modal-meta-row { display: flex; justify-content: space-between; font-size: 13px; }
-.modal-meta-row span:first-child { color: var(--muted); }
-.modal-meta-row span:last-child { font-weight: 600; }
-.modal-views { font-size: 12px; color: var(--muted); text-align: right; margin-bottom: 14px; }
-
-.btn-contact {
-  width: 100%; background: var(--accent); color: #000;
-  border: none; border-radius: 12px; padding: 14px;
-  font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700;
-  cursor: pointer; transition: opacity .2s; margin-bottom: 8px;
-}
-.btn-contact:active { opacity: .8; }
-.btn-share {
-  width: 100%; background: var(--s2); color: var(--text);
-  border: 1px solid var(--border); border-radius: 12px; padding: 12px;
-  font-family: inherit; font-size: 13px; font-weight: 600;
-  cursor: pointer; transition: border-color .2s;
-}
-.btn-share:hover { border-color: var(--accent); }
-
-/* ───── POST VIEW ───── */
-#post-view { padding: 16px 14px 90px; }
-.form-title { font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 800; margin-bottom: 16px; }
-
-.field { margin-bottom: 12px; }
-.field label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .7px; color: var(--muted); margin-bottom: 5px; }
-.field input, .field textarea, .field select {
-  width: 100%; background: var(--s1); border: 1.5px solid var(--border);
-  border-radius: 10px; color: var(--text); font-family: inherit; font-size: 14px;
-  padding: 11px 13px; outline: none; transition: border-color .2s;
-}
-.field input:focus, .field textarea:focus, .field select:focus { border-color: var(--accent); }
-.field textarea { resize: none; height: 88px; line-height: 1.5; }
-.field select option { background: #222; }
-
-.char-count { font-size: 11px; color: var(--muted); text-align: right; margin-top: 3px; }
-
-.cat-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 7px; margin-bottom: 12px; }
-.cat-btn {
-  background: var(--s1); border: 1.5px solid var(--border);
-  border-radius: 9px; color: var(--muted); font-family: inherit;
-  font-size: 12px; font-weight: 600; padding: 9px 4px;
-  cursor: pointer; transition: all .15s; text-align: center;
-}
-.cat-btn.sel { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
-
-.btn-submit {
-  width: 100%; background: var(--accent); color: #000;
-  border: none; border-radius: 12px; padding: 15px;
-  font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 800;
-  cursor: pointer; transition: opacity .2s, transform .1s; margin-top: 6px;
-}
-.btn-submit:active { transform: scale(.98); opacity: .85; }
-
-.success-msg { display: none; text-align: center; padding: 50px 20px; animation: fadeUp .4s ease; }
-.success-icon { font-size: 54px; margin-bottom: 14px; }
-.success-msg h2 { font-family: 'Syne', sans-serif; font-size: 20px; margin-bottom: 8px; }
-.success-msg p { color: var(--muted); font-size: 13px; line-height: 1.6; }
-
-/* ───── FAVOURITES VIEW ───── */
-#fav-view { padding-bottom: 80px; }
-
-/* ───── ADMIN VIEW ───── */
-#admin-view { padding: 14px 14px 90px; }
-.admin-header { font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
-.admin-badge { background: var(--danger); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 6px; }
-
-/* stats grid */
-.stats-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 8px; margin-bottom: 16px; }
-.stat-card {
-  background: var(--s1); border: 1px solid var(--border);
-  border-radius: var(--r); padding: 12px 14px;
-}
-.stat-card .stat-val { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800; color: var(--accent); }
-.stat-card .stat-label { font-size: 11px; color: var(--muted); font-weight: 600; margin-top: 2px; }
-.stat-card.warn .stat-val { color: var(--warn); }
-.stat-card.danger .stat-val { color: var(--danger); }
-.stat-card.green .stat-val { color: var(--green); }
-
-/* admin tabs */
-.admin-tabs { display: flex; gap: 6px; margin-bottom: 14px; }
-.admin-tab {
-  padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 700;
-  cursor: pointer; border: 1.5px solid var(--border); background: transparent;
-  color: var(--muted); transition: all .15s;
-}
-.admin-tab.active { background: var(--s3); color: var(--text); border-color: var(--muted2); }
-
-/* moderation card */
-.mod-card {
-  background: var(--s1); border: 1px solid var(--border);
-  border-radius: var(--r); padding: 13px; margin-bottom: 8px;
-}
-.mod-card-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
-.mod-card-meta { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
-.mod-actions { display: flex; gap: 7px; }
-.mod-btn {
-  flex: 1; border: none; border-radius: 9px; padding: 9px;
-  font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700;
-  cursor: pointer; transition: opacity .2s;
-}
-.mod-btn:active { opacity: .7; }
-.mod-btn.approve { background: var(--green); color: #000; }
-.mod-btn.reject  { background: var(--danger); color: #fff; }
-.mod-btn.edit    { background: var(--s3); color: var(--text); border: 1px solid var(--border); }
-
-/* banned users */
-.user-row {
-  background: var(--s1); border: 1px solid var(--border);
-  border-radius: var(--r); padding: 11px 13px;
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 7px; font-size: 13px;
-}
-.ban-btn {
-  background: var(--danger); color: #fff; border: none;
-  border-radius: 7px; padding: 5px 11px; font-size: 11px;
-  font-weight: 700; cursor: pointer; font-family: inherit;
-}
-.unban-btn {
-  background: var(--s3); color: var(--muted); border: 1px solid var(--border);
-  border-radius: 7px; padding: 5px 11px; font-size: 11px;
-  font-weight: 700; cursor: pointer; font-family: inherit;
-}
-
-/* ───── BOTTOM NAV ───── */
-.bottom-nav {
-  position: fixed; bottom: 0; left: 0; right: 0;
-  background: rgba(17,17,19,.95); backdrop-filter: blur(12px);
-  border-top: 1px solid var(--border);
-  display: flex; padding: 8px 0 16px; z-index: 50;
-}
-.nav-btn {
-  flex: 1; display: flex; flex-direction: column;
-  align-items: center; gap: 3px; cursor: pointer;
-  border: none; background: none; color: var(--muted2);
-  font-size: 10px; font-family: inherit; font-weight: 700;
-  text-transform: uppercase; letter-spacing: .4px;
-  transition: color .18s;
-}
-.nav-btn.active { color: var(--accent); }
-.nav-icon { font-size: 20px; line-height: 1; }
-.nav-dot {
-  position: absolute; width: 7px; height: 7px;
-  background: var(--danger); border-radius: 50%;
-  top: 6px; right: calc(50% - 14px);
-}
-
-/* ───── TOAST ───── */
-.toast {
-  position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px);
-  background: var(--s3); border: 1px solid var(--border); color: var(--text);
-  font-size: 13px; font-weight: 600; padding: 10px 18px;
-  border-radius: 20px; z-index: 300; opacity: 0;
-  transition: opacity .2s, transform .2s; pointer-events: none;
-  white-space: nowrap;
-}
-.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+:root{--bg:#09090b;--s1:#111113;--s2:#18181b;--s3:#27272a;--border:#3f3f46;--accent:#22d3ee;--adim:#083344;--accent2:#f472b6;--warn:#fb923c;--danger:#f87171;--green:#4ade80;--text:#fafafa;--muted:#71717a;--muted2:#52525b;--r:12px}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+.topbar{position:sticky;top:0;z-index:50;background:rgba(9,9,11,.95);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);padding:11px 14px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;letter-spacing:-1px;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.topbar-right{display:flex;align-items:center;gap:8px}
+.topbar-btn{background:var(--s3);border:1px solid var(--border);color:var(--muted);font-size:17px;width:34px;height:34px;border-radius:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;position:relative;flex-shrink:0}
+.topbar-btn.on{background:var(--adim);border-color:var(--accent);color:var(--accent)}
+.cart-count{position:absolute;top:-5px;right:-5px;background:var(--danger);color:#fff;font-size:10px;font-weight:800;width:17px;height:17px;border-radius:50%;display:none;align-items:center;justify-content:center}
+.view{display:none}.view.active{display:block}
+.tabs{display:flex;gap:6px;padding:11px 13px 7px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex-shrink:0;padding:5px 13px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:transparent;color:var(--muted);transition:all .18s}
+.tab.active{background:var(--accent);color:#000;border-color:var(--accent)}
+.sort-bar{display:flex;align-items:center;gap:7px;padding:0 13px 9px;font-size:12px}
+.sort-btn{background:var(--s2);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-family:inherit;font-size:12px;font-weight:600;padding:5px 10px;cursor:pointer;transition:all .15s}
+.sort-btn.active{color:var(--accent);border-color:var(--accent);background:var(--adim)}
+.sort-label{margin-left:auto;color:var(--muted)}
+.search-wrap{position:relative;padding:0 13px 9px}
+.search-input{width:100%;background:var(--s1);border:1.5px solid var(--border);border-radius:var(--r);color:var(--text);font-family:inherit;font-size:14px;padding:10px 13px 10px 37px;outline:none;transition:border-color .2s}
+.search-input:focus{border-color:var(--accent)}
+.search-icon{position:absolute;left:25px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:14px}
+#feed-view{padding-bottom:80px}
+.card{margin:0 11px 8px;background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:13px 13px 40px;cursor:pointer;transition:border-color .15s,transform .1s;animation:fadeUp .25s ease both;position:relative;overflow:hidden}
+.card:hover{border-color:var(--accent)}.card:active{transform:scale(.985)}
+.card-ribbon{position:absolute;top:0;left:0;right:0;height:2px}
+.card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;gap:8px}
+.card-cat{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;padding:3px 8px;border-radius:5px;background:var(--s3);color:var(--accent);flex-shrink:0}
+.card-price{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--accent);white-space:nowrap}
+.card-title{font-size:14px;font-weight:600;margin-bottom:4px;line-height:1.35}
+.card-desc{font-size:12px;color:var(--muted);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card-footer{display:flex;justify-content:space-between;align-items:center;margin-top:9px;padding-top:8px;border-top:1px solid var(--s3);font-size:11px;color:var(--muted)}
+.card-author{display:flex;align-items:center;gap:5px}
+.card-actions{position:absolute;bottom:8px;right:10px;display:flex;gap:6px}
+.ca-btn{background:var(--s2);border:1px solid var(--border);border-radius:7px;font-size:15px;width:30px;height:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.ca-btn:active{transform:scale(.9)}
+.ca-btn.fav-on{background:#3b0a2a;border-color:var(--accent2)}
+.ca-btn.cart-on{background:var(--adim);border-color:var(--accent)}
+.avatar{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#000;flex-shrink:0}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.empty{text-align:center;padding:50px 20px;color:var(--muted);font-size:14px}
+.empty-icon{font-size:38px;margin-bottom:10px}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:200}
+.modal-overlay.open{display:flex;align-items:flex-end;animation:fadeIn .18s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{background:var(--s1);border-radius:20px 20px 0 0;width:100%;max-height:90vh;overflow-y:auto;padding:18px 16px 36px;animation:slideUp .22s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:none}}
+.modal-handle{width:36px;height:4px;background:var(--s3);border-radius:2px;margin:0 auto 16px}
+.modal-cat{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:var(--accent);margin-bottom:5px}
+.modal-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;line-height:1.2;margin-bottom:8px}
+.modal-price{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--accent);margin-bottom:14px}
+.modal-desc{font-size:14px;line-height:1.7;color:#ccc;margin-bottom:16px}
+.modal-meta{background:var(--s2);border-radius:10px;padding:12px 14px;margin-bottom:14px;display:flex;flex-direction:column;gap:8px}
+.modal-meta-row{display:flex;justify-content:space-between;font-size:13px}
+.modal-meta-row span:first-child{color:var(--muted)}
+.modal-meta-row span:last-child{font-weight:600}
+.modal-views{font-size:12px;color:var(--muted);text-align:right;margin-bottom:14px}
+.modal-btns{display:flex;flex-direction:column;gap:8px}
+.btn-primary{width:100%;background:var(--accent);color:#000;border:none;border-radius:12px;padding:14px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:opacity .2s}
+.btn-primary:active{opacity:.8}
+.btn-secondary{width:100%;background:var(--s2);color:var(--text);border:1px solid var(--border);border-radius:12px;padding:12px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:border-color .2s}
+.btn-secondary:hover{border-color:var(--accent)}
+#post-view{padding:14px 13px 90px}
+.form-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;margin-bottom:15px}
+.field{margin-bottom:11px}
+.field label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:5px}
+.field input,.field textarea{width:100%;background:var(--s1);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:inherit;font-size:14px;padding:11px 13px;outline:none;transition:border-color .2s}
+.field input:focus,.field textarea:focus{border-color:var(--accent)}
+.field textarea{resize:none;height:86px;line-height:1.5}
+.char-count{font-size:11px;color:var(--muted);text-align:right;margin-top:3px}
+.cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:11px}
+.cat-btn{background:var(--s1);border:1.5px solid var(--border);border-radius:9px;color:var(--muted);font-family:inherit;font-size:12px;font-weight:600;padding:9px 4px;cursor:pointer;transition:all .15s;text-align:center}
+.cat-btn.sel{background:var(--adim);border-color:var(--accent);color:var(--accent)}
+.btn-submit{width:100%;background:var(--accent);color:#000;border:none;border-radius:12px;padding:15px;font-family:'Syne',sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition:opacity .2s,transform .1s;margin-top:6px}
+.btn-submit:active{transform:scale(.98);opacity:.85}
+.info-box{font-size:12px;color:var(--muted);padding:10px 12px;background:var(--s1);border-radius:10px;border:1px solid var(--s3);margin-bottom:11px;line-height:1.5}
+.success-msg{display:none;text-align:center;padding:50px 20px;animation:fadeUp .4s ease}
+.success-icon{font-size:54px;margin-bottom:14px}
+.success-msg h2{font-family:'Syne',sans-serif;font-size:20px;margin-bottom:8px}
+.success-msg p{color:var(--muted);font-size:13px;line-height:1.6}
+/* PROFILE */
+#profile-view{padding:14px 13px 90px}
+.profile-hero{display:flex;align-items:center;gap:14px;margin-bottom:18px;padding:16px;background:var(--s1);border:1px solid var(--border);border-radius:14px}
+.profile-avatar{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#000;flex-shrink:0}
+.profile-name{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-bottom:3px}
+.profile-username{font-size:13px;color:var(--muted)}
+.profile-id{font-size:11px;color:var(--muted2);margin-top:2px}
+.profile-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.pstat{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:12px 10px;text-align:center}
+.pstat-val{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--accent)}
+.pstat-label{font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.section-title{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:9px}
+.my-ad-row{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:11px 13px;margin-bottom:7px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;transition:border-color .15s}
+.my-ad-row:hover{border-color:var(--accent)}
+.my-ad-info{flex:1;min-width:0}
+.my-ad-title{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px}
+.my-ad-meta{font-size:11px;color:var(--muted)}
+.status-pill{font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;flex-shrink:0;margin-left:8px}
+.sp-approved{background:#14532d;color:var(--green)}
+.sp-pending{background:#431407;color:var(--warn)}
+.sp-rejected{background:#450a0a;color:var(--danger)}
+/* CART */
+#cart-view{padding:14px 13px 90px}
+.cart-header{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+.cart-clear{font-size:12px;color:var(--danger);cursor:pointer;font-weight:600;background:none;border:none;font-family:inherit}
+.cart-item{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:12px 13px;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.cart-item-info{flex:1;min-width:0}
+.cart-item-title{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px}
+.cart-item-price{font-size:13px;color:var(--accent);font-weight:700}
+.cart-remove{background:var(--s3);border:1px solid var(--border);border-radius:7px;font-size:14px;width:30px;height:30px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s}
+.cart-remove:active{transform:scale(.9)}
+.cart-summary{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:12px}
+.cart-sum-row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px}
+.cart-sum-row.total{font-weight:700;font-size:15px;color:var(--accent);margin-bottom:0}
+/* ADMIN */
+#admin-view{padding:13px 13px 90px}
+.admin-header{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.admin-badge{background:var(--danger);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px}
+.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-bottom:14px}
+.stat-card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:11px 13px}
+.stat-val{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--accent)}
+.stat-label{font-size:11px;color:var(--muted);font-weight:600;margin-top:2px}
+.stat-card.warn .stat-val{color:var(--warn)}
+.stat-card.danger .stat-val{color:var(--danger)}
+.stat-card.green .stat-val{color:var(--green)}
+.admin-tabs{display:flex;gap:6px;margin-bottom:13px}
+.admin-tab{padding:6px 13px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid var(--border);background:transparent;color:var(--muted);transition:all .15s}
+.admin-tab.active{background:var(--s3);color:var(--text);border-color:var(--muted2)}
+.mod-card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:13px;margin-bottom:8px}
+.mod-card-title{font-size:14px;font-weight:600;margin-bottom:4px}
+.mod-card-meta{font-size:12px;color:var(--muted);margin-bottom:7px}
+.mod-card-desc{font-size:12px;color:var(--muted2);margin-bottom:10px;line-height:1.5}
+.mod-actions{display:flex;gap:7px}
+.mod-btn{flex:1;border:none;border-radius:9px;padding:9px;font-family:'Syne',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:opacity .2s}
+.mod-btn:active{opacity:.7}
+.mod-btn.approve{background:var(--green);color:#000}
+.mod-btn.reject{background:var(--danger);color:#fff}
+.mod-btn.del{background:var(--s3);color:var(--muted);border:1px solid var(--border);flex:0.6}
+.user-row{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:11px 13px;display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;font-size:13px}
+.ban-btn{background:var(--danger);color:#fff;border:none;border-radius:7px;padding:5px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit}
+.unban-btn{background:var(--s3);color:var(--muted);border:1px solid var(--border);border-radius:7px;padding:5px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit}
+.lock-screen{text-align:center;padding:70px 20px;color:var(--muted)}
+.lock-screen .lock-icon{font-size:52px;margin-bottom:14px}
+.lock-screen h3{font-family:'Syne',sans-serif;font-size:19px;margin-bottom:8px;color:var(--text)}
+.lock-screen p{font-size:13px;line-height:1.6}
+.lock-screen code{background:var(--s3);padding:2px 7px;border-radius:5px;font-size:12px;color:var(--accent)}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(17,17,19,.97);backdrop-filter:blur(12px);border-top:1px solid var(--border);display:flex;padding:8px 0 16px;z-index:50}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;border:none;background:none;color:var(--muted2);font-size:10px;font-family:inherit;font-weight:700;text-transform:uppercase;letter-spacing:.4px;transition:color .18s;position:relative}
+.nav-btn.active{color:var(--accent)}
+.nav-icon{font-size:20px;line-height:1}
+.nav-dot{position:absolute;top:0;right:calc(50% - 16px);width:7px;height:7px;background:var(--danger);border-radius:50%;display:none}
+.toast{position:fixed;bottom:78px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--s3);border:1px solid var(--border);color:var(--text);font-size:13px;font-weight:600;padding:9px 18px;border-radius:20px;z-index:300;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
 </head>
 <body>
 
-<!-- TOP BAR -->
 <div class="topbar">
   <div class="logo">ZALET</div>
   <div class="topbar-right">
-    <span class="badge-new" id="pending-badge" style="display:none"></span>
-    <button class="admin-toggle" id="admin-toggle-btn" onclick="toggleAdminAccess()" title="Режим администратора">⚙️</button>
+    <button class="topbar-btn" id="cart-topbtn" onclick="showView('cart')" title="Корзина">
+      🛒<span class="cart-count" id="cart-count"></span>
+    </button>
+    <button class="topbar-btn" id="admin-topbtn" onclick="showView('admin')" title="Администратор" style="display:none">⚙️</button>
   </div>
 </div>
 
-<!-- ════════════ FEED VIEW ════════════ -->
+<!-- FEED -->
 <div class="view active" id="feed-view">
-  <div class="search-wrap" style="padding-top:12px;">
+  <div class="search-wrap" style="padding-top:12px">
     <span class="search-icon">🔍</span>
     <input class="search-input" id="search-input" placeholder="Поиск по объявлениям..." oninput="filterCards()">
   </div>
-
   <div class="tabs" id="cat-tabs">
     <button class="tab active" onclick="filterCat('Все',this)">Все</button>
     <button class="tab" onclick="filterCat('Продажа',this)">Продажа</button>
@@ -381,24 +189,20 @@ body { font-family: 'Space Grotesk', sans-serif; background: var(--bg); color: v
     <button class="tab" onclick="filterCat('Куплю',this)">Куплю</button>
     <button class="tab" onclick="filterCat('Работа',this)">Работа</button>
   </div>
-
   <div class="sort-bar">
-    <button class="sort-btn active" id="sort-new" onclick="setSort('new',this)">Новые</button>
-    <button class="sort-btn" id="sort-price" onclick="setSort('price',this)">По цене</button>
-    <button class="sort-btn" id="sort-views" onclick="setSort('views',this)">Популярные</button>
+    <button class="sort-btn active" onclick="setSort('new',this)">Новые</button>
+    <button class="sort-btn" onclick="setSort('price',this)">По цене</button>
+    <button class="sort-btn" onclick="setSort('views',this)">Популярные</button>
     <span class="sort-label" id="total-count"></span>
   </div>
-
   <div id="cards-container"></div>
 </div>
 
-<!-- ════════════ POST VIEW ════════════ -->
+<!-- POST -->
 <div class="view" id="post-view">
-  <div id="post-form">
+  <div id="post-form" style="padding:14px 13px 90px">
     <div class="form-title">✏️ Подать объявление</div>
-
-    <div class="field">
-      <label>Категория</label>
+    <div class="field"><label>Категория</label>
       <div class="cat-grid">
         <button class="cat-btn" onclick="selectCat(this,'Продажа')">🛒 Продажа</button>
         <button class="cat-btn" onclick="selectCat(this,'Услуги')">🔧 Услуги</button>
@@ -408,94 +212,70 @@ body { font-family: 'Space Grotesk', sans-serif; background: var(--bg); color: v
         <button class="cat-btn" onclick="selectCat(this,'Работа')">💼 Работа</button>
       </div>
     </div>
-
-    <div class="field">
-      <label>Заголовок</label>
-      <input type="text" id="f-title" maxlength="80" placeholder="Например: iPhone 14 Pro Max, 256GB" oninput="countChars('f-title','cc-title',80)">
-      <div class="char-count" id="cc-title">0 / 80</div>
-    </div>
-    <div class="field">
-      <label>Описание</label>
-      <textarea id="f-desc" maxlength="500" placeholder="Состояние, особенности, условия..." oninput="countChars('f-desc','cc-desc',500)"></textarea>
-      <div class="char-count" id="cc-desc">0 / 500</div>
-    </div>
-    <div class="field">
-      <label>Цена</label>
-      <input type="text" id="f-price" placeholder="45 000 ₽ или Договорная">
-    </div>
-    <div class="field">
-      <label>Город</label>
-      <input type="text" id="f-city" placeholder="Москва, Санкт-Петербург...">
-    </div>
-    <div class="field">
-      <label>Контакт Telegram</label>
-      <input type="text" id="f-contact" placeholder="@username">
-    </div>
-
-    <div style="font-size:12px;color:var(--muted);margin-bottom:12px;padding:10px 12px;background:var(--s1);border-radius:10px;border:1px solid var(--s3);">
-      ℹ️ Объявление появится в ленте после проверки администратором (обычно до 15 минут).
-    </div>
-
+    <div class="field"><label>Заголовок</label><input type="text" id="f-title" maxlength="80" placeholder="Например: iPhone 14 Pro Max, 256GB" oninput="countChars('f-title','cc-title',80)"><div class="char-count" id="cc-title">0 / 80</div></div>
+    <div class="field"><label>Описание</label><textarea id="f-desc" maxlength="500" placeholder="Состояние, особенности, условия..." oninput="countChars('f-desc','cc-desc',500)"></textarea><div class="char-count" id="cc-desc">0 / 500</div></div>
+    <div class="field"><label>Цена</label><input type="text" id="f-price" placeholder="45 000 ₽ или Договорная"></div>
+    <div class="field"><label>Город</label><input type="text" id="f-city" placeholder="Москва, Санкт-Петербург..."></div>
+    <div class="field"><label>Контакт Telegram</label><input type="text" id="f-contact" placeholder="@username"></div>
+    <div class="info-box">ℹ️ Объявление появится после проверки администратором — обычно до 15 минут.</div>
     <button class="btn-submit" onclick="submitAd()">Отправить на модерацию →</button>
   </div>
-
   <div class="success-msg" id="success-msg">
     <div class="success-icon">🚀</div>
     <h2>Объявление отправлено!</h2>
-    <p>Ожидайте проверки. После одобрения оно появится в ленте и уведомление придёт вам в бот.</p>
-    <br>
+    <p>После одобрения оно появится в ленте и вы получите уведомление в боте.</p><br>
     <button class="btn-submit" onclick="goFeed()" style="margin-top:0">К ленте</button>
   </div>
 </div>
 
-<!-- ════════════ FAVOURITES VIEW ════════════ -->
+<!-- PROFILE -->
+<div class="view" id="profile-view">
+  <div id="profile-content" style="padding:14px 13px 90px"></div>
+</div>
+
+<!-- CART -->
+<div class="view" id="cart-view">
+  <div class="cart-header">🛒 Корзина<button class="cart-clear" onclick="clearCart()">Очистить</button></div>
+  <div id="cart-items"></div>
+</div>
+
+<!-- FAV -->
 <div class="view" id="fav-view">
-  <div style="padding:14px 14px 0;">
-    <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800;margin-bottom:12px;">❤️ Избранное</div>
-  </div>
-  <div id="fav-container" style="padding:0 0 80px;"></div>
+  <div style="padding:14px 13px 0"><div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800;margin-bottom:12px">❤️ Избранное</div></div>
+  <div id="fav-container" style="padding-bottom:80px"></div>
 </div>
 
-<!-- ════════════ ADMIN VIEW ════════════ -->
+<!-- ADMIN -->
 <div class="view" id="admin-view">
-  <div class="admin-header">
-    ⚙️ Панель администратора
-    <span class="admin-badge">ADMIN</span>
-  </div>
-
-  <!-- Stats -->
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-val" id="st-total">0</div>
-      <div class="stat-label">Всего объявлений</div>
-    </div>
-    <div class="stat-card warn">
-      <div class="stat-val" id="st-pending">0</div>
-      <div class="stat-label">На модерации</div>
-    </div>
-    <div class="stat-card green">
-      <div class="stat-val" id="st-approved">0</div>
-      <div class="stat-label">Одобрено</div>
-    </div>
-    <div class="stat-card danger">
-      <div class="stat-val" id="st-rejected">0</div>
-      <div class="stat-label">Отклонено</div>
+  <div id="admin-locked" style="display:none">
+    <div class="lock-screen">
+      <div class="lock-icon">🔒</div>
+      <h3>Доступ закрыт</h3>
+      <p>Панель администратора доступна только доверенным лицам.<br><br>
+      Ваш Telegram ID: <code id="user-id-display">—</code><br><br>
+      Чтобы получить доступ, передайте этот ID владельцу бота.</p>
     </div>
   </div>
-
-  <!-- Admin tabs -->
-  <div class="admin-tabs">
-    <button class="admin-tab active" onclick="adminTab('moderation',this)">Модерация</button>
-    <button class="admin-tab" onclick="adminTab('all',this)">Все объявления</button>
-    <button class="admin-tab" onclick="adminTab('users',this)">Пользователи</button>
+  <div id="admin-panel" style="display:none">
+    <div class="admin-header">⚙️ Администратор <span class="admin-badge">ADMIN</span></div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-val" id="st-total">0</div><div class="stat-label">Всего объявлений</div></div>
+      <div class="stat-card warn"><div class="stat-val" id="st-pending">0</div><div class="stat-label">На модерации</div></div>
+      <div class="stat-card green"><div class="stat-val" id="st-approved">0</div><div class="stat-label">Одобрено</div></div>
+      <div class="stat-card danger"><div class="stat-val" id="st-rejected">0</div><div class="stat-label">Отклонено</div></div>
+    </div>
+    <div class="admin-tabs">
+      <button class="admin-tab active" onclick="adminTab('moderation',this)">Модерация</button>
+      <button class="admin-tab" onclick="adminTab('all',this)">Все</button>
+      <button class="admin-tab" onclick="adminTab('users',this)">Пользователи</button>
+    </div>
+    <div id="admin-moderation"></div>
+    <div id="admin-all" style="display:none"></div>
+    <div id="admin-users" style="display:none"></div>
   </div>
-
-  <div id="admin-moderation"></div>
-  <div id="admin-all" style="display:none;"></div>
-  <div id="admin-users" style="display:none;"></div>
 </div>
 
-<!-- DETAIL MODAL -->
+<!-- MODAL -->
 <div class="modal-overlay" id="modal" onclick="closeModal(event)">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -510,456 +290,356 @@ body { font-family: 'Space Grotesk', sans-serif; background: var(--bg); color: v
       <div class="modal-meta-row"><span>📊 Статус</span><span id="m-status"></span></div>
     </div>
     <div class="modal-views" id="m-views"></div>
-    <button class="btn-contact" onclick="contactSeller()">✉️ Написать продавцу</button>
-    <button class="btn-share" onclick="shareAd()">🔗 Поделиться объявлением</button>
+    <div class="modal-btns">
+      <button class="btn-primary" onclick="contactSeller()">✉️ Написать продавцу</button>
+      <button class="btn-secondary" id="modal-cart-btn" onclick="toggleCartFromModal()">🛒 Добавить в корзину</button>
+      <button class="btn-secondary" id="modal-fav-btn" onclick="toggleFavFromModal()">🤍 В избранное</button>
+      <button class="btn-secondary" onclick="shareAd()">🔗 Поделиться</button>
+    </div>
   </div>
 </div>
 
 <!-- BOTTOM NAV -->
 <div class="bottom-nav">
-  <button class="nav-btn active" id="nav-feed" onclick="showView('feed')">
-    <span class="nav-icon">📋</span>Лента
-  </button>
-  <button class="nav-btn" id="nav-post" onclick="showView('post')">
-    <span class="nav-icon">✏️</span>Подать
-  </button>
-  <button class="nav-btn" style="position:relative;" id="nav-fav" onclick="showView('fav')">
-    <span class="nav-icon">❤️</span>Избранное
-  </button>
-  <button class="nav-btn" id="nav-admin" onclick="showView('admin')" style="display:none;">
-    <span class="nav-icon">⚙️</span>Админ
-  </button>
+  <button class="nav-btn active" id="nav-feed" onclick="showView('feed')"><span class="nav-icon">📋</span>Лента</button>
+  <button class="nav-btn" id="nav-post" onclick="showView('post')"><span class="nav-icon">✏️</span>Подать</button>
+  <button class="nav-btn" id="nav-fav" onclick="showView('fav')"><span class="nav-icon">❤️</span>Избранное</button>
+  <button class="nav-btn" id="nav-profile" onclick="showView('profile')"><span class="nav-icon">👤</span>Профиль</button>
+  <button class="nav-btn" id="nav-admin" onclick="showView('admin')" style="display:none"><span class="nav-icon">⚙️</span>Админ<span class="nav-dot" id="admin-dot"></span></button>
 </div>
 
-<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
 <script>
-// ═══════════════════════════════════════════════
-//  DATA
-// ═══════════════════════════════════════════════
-const COLORS = ['#22d3ee','#f472b6','#4ade80','#fb923c','#a78bfa','#fbbf24','#34d399'];
+// ════════════════════════════════════════════════════
+//  ▼▼▼ СПИСОК АДМИНИСТРАТОРОВ — ВСТАВЬТЕ СВОИ ID ▼▼▼
+//
+//  Узнать свой Telegram ID: напишите @userinfobot в Telegram
+//  Формат: просто числа через запятую
+//
+const ADMIN_IDS = [
+  123456789,    // ← Замените на свой Telegram ID
+  // 987654321, // ← Второй администратор (раскомментируйте)
+];
+//  ▲▲▲ СПИСОК АДМИНИСТРАТОРОВ ▲▲▲
+// ════════════════════════════════════════════════════
 
-const SAMPLE_ADS = [
-  { id:1, cat:'Продажа', title:'iPhone 14 Pro Max 256GB Deep Purple', desc:'В идеальном состоянии, без царапин. Полный комплект, чек сохранён. Face ID работает отлично. Причина продажи — перехожу на Android. Покупал в официальном магазине.', price:'85 000 ₽', city:'Москва', author:'@nikita_sells', date:'сегодня, 10:42', status:'approved', views:148 },
-  { id:2, cat:'Аренда', title:'Уютная студия в центре Санкт-Петербурга', desc:'Сдаю студию 28 м² на длительный срок. Полностью меблирована, новая техника, хороший ремонт. Метро в 5 минутах пешком. Никаких животных, некурящим.', price:'45 000 ₽/мес', city:'СПб', author:'@ira_flats', date:'сегодня, 09:15', status:'approved', views:94 },
-  { id:3, cat:'Услуги', title:'Репетитор по математике и физике', desc:'Преподаю школьникам 8–11 класс. Подготовка к ЕГЭ/ОГЭ. Опыт 7 лет, 95% поступают в желаемые вузы. Онлайн или офлайн (Москва). Первое занятие бесплатно.', price:'2 000 ₽/час', city:'Москва', author:'@tutor_pavel', date:'вчера, 18:30', status:'approved', views:61 },
-  { id:4, cat:'Отдам', title:'Котёнок Сибирской породы — ищет дом 🐱', desc:'Милый котёнок 2 месяца, мальчик. Привит, здоров. Отдаём в добрые руки. Документов нет, но характер чудесный — игривый и ласковый.', price:'Бесплатно', city:'Казань', author:'@masha_cats', date:'вчера, 14:00', status:'approved', views:213 },
-  { id:5, cat:'Работа', title:'Ищу SMM-менеджера в команду', desc:'Небольшое digital-агентство ищет специалиста по контенту. Удалённо, гибкий график. Нужен опыт ведения Instagram/VK от 1 года. Тестовое задание оплачивается.', price:'60 000 ₽', city:'Удалённо', author:'@agency_hr', date:'2 дня назад', status:'approved', views:77 },
-  { id:6, cat:'Продажа', title:'MacBook Air M2 13" Space Gray', desc:'Ноутбук куплен 8 месяцев назад. RAM 16GB, SSD 512GB. Состояние идеальное, не несли на работу. Зарядник в комплекте.', price:'110 000 ₽', city:'Екатеринбург', author:'@tech_store_ekb', date:'2 дня назад', status:'approved', views:189 },
-  { id:7, cat:'Куплю', title:'Куплю горный велосипед б/у', desc:'Ищу горный велосипед в хорошем состоянии, рама 17–19". Бренд не важен, главное — рабочее состояние без скрытых поломок. Самовывоз.', price:'до 15 000 ₽', city:'Новосибирск', author:'@velobrat', date:'3 дня назад', status:'approved', views:42 },
-  { id:8, cat:'Услуги', title:'Переезды и грузчики — быстро и аккуратно', desc:'Помогу с переездом любой сложности. Команда 2–4 человека. Разборка/сборка мебели. Ежедневно с 8:00 до 22:00. Опыт 5 лет.', price:'от 1 500 ₽/час', city:'Москва', author:'@gruzov_team', date:'3 дня назад', status:'approved', views:55 },
-  { id:9, cat:'Продажа', title:'PlayStation 5 + 3 игры', desc:'PS5 дисковая версия, куплена год назад. В комплекте: 2 геймпада, FIFA 24, God of War Ragnarok, Spider-Man 2. Всё работает идеально.', price:'55 000 ₽', city:'Краснодар', author:'@gamer_krd', date:'только что', status:'pending', views:3 },
-  { id:10, cat:'Услуги', title:'Срочный ремонт телефонов за 1 час', desc:'Замена экранов, аккумуляторов, разъёмов. Гарантия 3 месяца. Работаем с iPhone, Samsung, Xiaomi. Выезд на дом возможен.', price:'от 800 ₽', city:'Москва', author:'@fix_phones', date:'только что', status:'pending', views:1 },
+const COLORS=['#22d3ee','#f472b6','#4ade80','#fb923c','#a78bfa','#fbbf24','#34d399'];
+
+let ads=[
+  {id:1,cat:'Продажа',title:'iPhone 14 Pro Max 256GB Deep Purple',desc:'В идеальном состоянии, без царапин. Полный комплект, чек сохранён. Face ID работает отлично. Причина продажи — перехожу на Android.',price:'85 000 ₽',city:'Москва',author:'@nikita_sells',date:'сегодня, 10:42',status:'approved',views:148,userId:111},
+  {id:2,cat:'Аренда',title:'Уютная студия в центре Санкт-Петербурга',desc:'Сдаю студию 28 м² на длительный срок. Полностью меблирована, новая техника, хороший ремонт. Метро в 5 минутах пешком.',price:'45 000 ₽/мес',city:'СПб',author:'@ira_flats',date:'сегодня, 09:15',status:'approved',views:94,userId:222},
+  {id:3,cat:'Услуги',title:'Репетитор по математике и физике',desc:'Преподаю школьникам 8–11 класс. Подготовка к ЕГЭ/ОГЭ. Опыт 7 лет. Онлайн или офлайн (Москва). Первое занятие бесплатно.',price:'2 000 ₽/час',city:'Москва',author:'@tutor_pavel',date:'вчера, 18:30',status:'approved',views:61,userId:333},
+  {id:4,cat:'Отдам',title:'Котёнок Сибирской породы — ищет дом 🐱',desc:'Милый котёнок 2 месяца, мальчик. Привит, здоров. Отдаём в добрые руки.',price:'Бесплатно',city:'Казань',author:'@masha_cats',date:'вчера, 14:00',status:'approved',views:213,userId:444},
+  {id:5,cat:'Работа',title:'Ищу SMM-менеджера в команду',desc:'Небольшое digital-агентство ищет специалиста по контенту. Удалённо, гибкий график. Нужен опыт ведения Instagram/VK от 1 года.',price:'60 000 ₽',city:'Удалённо',author:'@agency_hr',date:'2 дня назад',status:'approved',views:77,userId:555},
+  {id:6,cat:'Продажа',title:'MacBook Air M2 13" Space Gray',desc:'Ноутбук куплен 8 месяцев назад. RAM 16GB, SSD 512GB. Состояние идеальное.',price:'110 000 ₽',city:'Екатеринбург',author:'@tech_store_ekb',date:'2 дня назад',status:'approved',views:189,userId:666},
+  {id:7,cat:'Куплю',title:'Куплю горный велосипед б/у',desc:'Ищу горный велосипед в хорошем состоянии, рама 17–19". Самовывоз.',price:'до 15 000 ₽',city:'Новосибирск',author:'@velobrat',date:'3 дня назад',status:'approved',views:42,userId:777},
+  {id:8,cat:'Услуги',title:'Переезды и грузчики — быстро и аккуратно',desc:'Помогу с переездом любой сложности. Команда 2–4 человека. Ежедневно с 8:00 до 22:00.',price:'от 1 500 ₽/час',city:'Москва',author:'@gruzov_team',date:'3 дня назад',status:'approved',views:55,userId:888},
+  {id:9,cat:'Продажа',title:'PlayStation 5 + 3 игры',desc:'PS5 дисковая версия. В комплекте: 2 геймпада, FIFA 24, God of War, Spider-Man 2.',price:'55 000 ₽',city:'Краснодар',author:'@gamer_krd',date:'только что',status:'pending',views:3,userId:999},
+  {id:10,cat:'Услуги',title:'Срочный ремонт телефонов за 1 час',desc:'Замена экранов, аккумуляторов. Гарантия 3 месяца. iPhone, Samsung, Xiaomi.',price:'от 800 ₽',city:'Москва',author:'@fix_phones',date:'только что',status:'pending',views:1,userId:1001},
 ];
 
-const USERS = [
-  { username:'@nikita_sells', ads: 3, banned: false },
-  { username:'@ira_flats',    ads: 1, banned: false },
-  { username:'@spam_user',    ads: 12, banned: true },
-  { username:'@tutor_pavel',  ads: 2, banned: false },
-  { username:'@agency_hr',    ads: 4, banned: false },
+let usersDB=[
+  {id:111,username:'@nikita_sells',name:'Никита',banned:false},
+  {id:222,username:'@ira_flats',name:'Ира',banned:false},
+  {id:333,username:'@tutor_pavel',name:'Павел',banned:false},
+  {id:444,username:'@masha_cats',name:'Маша',banned:false},
+  {id:555,username:'@agency_hr',name:'HR Agency',banned:false},
+  {id:666,username:'@tech_store_ekb',name:'Tech Store',banned:false},
+  {id:777,username:'@velobrat',name:'Велобрат',banned:false},
+  {id:888,username:'@gruzov_team',name:'Грузов Team',banned:false},
+  {id:999,username:'@gamer_krd',name:'Геймер',banned:false},
 ];
 
-let ads = [...SAMPLE_ADS];
-let favourites = new Set();
-let currentCat = 'Все';
-let currentSearch = '';
-let selectedCat = '';
-let currentAd = null;
-let currentSort = 'new';
-let isAdmin = false;
-let currentAdminTab = 'moderation';
+let favourites=new Set(), cart=new Set();
+let currentCat='Все', currentSearch='', currentSort='new', selectedCat='', currentAd=null, currentAdminTab='moderation';
 
-// ═══════════════════════════════════════════════
-//  TELEGRAM
-// ═══════════════════════════════════════════════
-const tg = window.Telegram && window.Telegram.WebApp;
-if (tg) {
-  tg.ready();
-  tg.expand();
-  tg.setHeaderColor('#09090b');
-  tg.setBackgroundColor('#09090b');
-  // Check if user is admin via initData (in real app verify on backend)
-  // For demo: if user's id ends in even number = admin
-  try {
-    const user = tg.initDataUnsafe?.user;
-    if (user && user.id % 2 === 0) isAdmin = true;
-  } catch(e){}
+// ── Текущий пользователь из Telegram ──
+const tg=window.Telegram&&window.Telegram.WebApp;
+let me={id:0,name:'Гость',firstName:'Гость',username:'',photoUrl:null};
+
+if(tg){
+  tg.ready(); tg.expand();
+  tg.setHeaderColor('#09090b'); tg.setBackgroundColor('#09090b');
+  try{
+    const u=tg.initDataUnsafe?.user;
+    if(u) me={id:u.id,name:[u.first_name,u.last_name].filter(Boolean).join(' '),firstName:u.first_name||'Пользователь',username:u.username?'@'+u.username:'',photoUrl:u.photo_url||null};
+  }catch(e){}
 }
 
-// ═══════════════════════════════════════════════
-//  RENDER FEED
-// ═══════════════════════════════════════════════
-function renderCards(container = 'cards-container', adsArr = null) {
-  const el = document.getElementById(container);
-  let list = adsArr || ads.filter(a => {
-    if (a.status === 'pending' || a.status === 'rejected') return false;
-    const matchCat = currentCat === 'Все' || a.cat === currentCat;
-    const q = currentSearch.toLowerCase();
-    const matchSearch = !q || a.title.toLowerCase().includes(q) || a.desc.toLowerCase().includes(q);
-    return matchCat && matchSearch;
+const isAdmin=ADMIN_IDS.includes(me.id);
+
+// Показываем кнопку админ-панели только администраторам
+if(isAdmin){
+  document.getElementById('nav-admin').style.display='';
+  document.getElementById('admin-topbtn').style.display='';
+}
+
+// Показываем ID пользователя на экране блокировки
+document.getElementById('user-id-display').textContent=me.id||'недоступен (откройте через Telegram)';
+
+// ── ЛЕНТА ──
+function renderCards(cid='cards-container',list=null){
+  const el=document.getElementById(cid);
+  let items=list||ads.filter(a=>{
+    if(a.status!=='approved') return false;
+    const mc=currentCat==='Все'||a.cat===currentCat;
+    const q=currentSearch.toLowerCase();
+    return mc&&(!q||a.title.toLowerCase().includes(q)||a.desc.toLowerCase().includes(q));
   });
-
-  // Sort
-  if (currentSort === 'price') {
-    list = [...list].sort((a,b) => {
-      const pa = parseInt(a.price.replace(/\D/g,'')) || 0;
-      const pb = parseInt(b.price.replace(/\D/g,'')) || 0;
-      return pa - pb;
-    });
-  } else if (currentSort === 'views') {
-    list = [...list].sort((a,b) => b.views - a.views);
-  }
-
-  document.getElementById('total-count') && (document.getElementById('total-count').textContent = `${list.length} объявл.`);
-
-  if (!list.length) {
-    el.innerHTML = `<div class="empty"><div class="empty-icon">🔍</div>Ничего не найдено</div>`;
-    return;
-  }
-
-  el.innerHTML = list.map((ad, i) => {
-    const color = COLORS[ad.id % COLORS.length];
-    const initials = ad.author.replace('@','').slice(0,2).toUpperCase();
-    const isFav = favourites.has(ad.id);
-    const statusDot = ad.status === 'approved'
-      ? `<span class="status-dot dot-ok"></span>`
-      : ad.status === 'pending'
-        ? `<span class="status-dot dot-pending"></span>`
-        : `<span class="status-dot dot-rejected"></span>`;
-    return `
-      <div class="card${ad.status !== 'approved' ? ' '+ad.status : ''}" onclick="openAd(${ad.id})" style="animation-delay:${Math.min(i,8)*0.035}s">
-        <button class="fav-btn" onclick="toggleFav(event,${ad.id})">${isFav ? '❤️' : '🤍'}</button>
-        <div class="card-top">
-          <span class="card-cat">${ad.cat}</span>
-          <span class="card-price">${ad.price}</span>
-        </div>
-        <div class="card-title">${ad.title}</div>
-        <div class="card-desc">${ad.desc}</div>
-        <div class="card-footer">
-          <div class="card-author">
-            <div class="avatar" style="background:${color}">${initials}</div>
-            ${ad.author}
-          </div>
-          <span>📍 ${ad.city} · 👁 ${ad.views}</span>
-        </div>
-      </div>`;
+  if(currentSort==='price') items=[...items].sort((a,b)=>(parseInt(a.price)||0)-(parseInt(b.price)||0));
+  else if(currentSort==='views') items=[...items].sort((a,b)=>b.views-a.views);
+  const tc=document.getElementById('total-count');
+  if(tc) tc.textContent=items.length+' объявл.';
+  if(!items.length){el.innerHTML=`<div class="empty"><div class="empty-icon">🔍</div>Ничего не найдено</div>`;return;}
+  el.innerHTML=items.map((ad,i)=>{
+    const color=COLORS[ad.id%COLORS.length];
+    const inits=ad.author.replace('@','').slice(0,2).toUpperCase();
+    const isFav=favourites.has(ad.id), inCart=cart.has(ad.id);
+    return `<div class="card" onclick="openAd(${ad.id})" style="animation-delay:${Math.min(i,7)*.04}s">
+      <div class="card-ribbon" style="background:${color}"></div>
+      <div class="card-top"><span class="card-cat">${ad.cat}</span><span class="card-price">${ad.price}</span></div>
+      <div class="card-title">${ad.title}</div>
+      <div class="card-desc">${ad.desc}</div>
+      <div class="card-footer">
+        <div class="card-author"><div class="avatar" style="background:${color}">${inits}</div>${ad.author}</div>
+        <span>📍${ad.city} · 👁${ad.views}</span>
+      </div>
+      <div class="card-actions" onclick="event.stopPropagation()">
+        <button class="ca-btn${isFav?' fav-on':''}" onclick="toggleFav(${ad.id})">${isFav?'❤️':'🤍'}</button>
+        <button class="ca-btn${inCart?' cart-on':''}" onclick="toggleCart(${ad.id})">${inCart?'🛒':'＋'}</button>
+      </div>
+    </div>`;
   }).join('');
 }
+function filterCat(cat,el){currentCat=cat;document.querySelectorAll('#cat-tabs .tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');renderCards();}
+function filterCards(){currentSearch=document.getElementById('search-input').value;renderCards();}
+function setSort(s,el){currentSort=s;document.querySelectorAll('.sort-btn').forEach(b=>b.classList.remove('active'));el.classList.add('active');renderCards();}
 
-function filterCat(cat, el) {
-  currentCat = cat;
-  document.querySelectorAll('#cat-tabs .tab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  renderCards();
+// ── КОРЗИНА ──
+function toggleCart(id){
+  const ad=ads.find(a=>a.id===id);if(!ad)return;
+  cart.has(id)?(cart.delete(id),showToast('Убрано из корзины')):(cart.add(id),showToast('🛒 Добавлено в корзину'));
+  updateCartBadge();renderCards();if(currentAd&&currentAd.id===id)updateModalBtns();
 }
-function filterCards() {
-  currentSearch = document.getElementById('search-input').value;
-  renderCards();
+function toggleCartFromModal(){if(currentAd)toggleCart(currentAd.id);}
+function updateCartBadge(){
+  const n=cart.size,el=document.getElementById('cart-count');
+  el.style.display=n?'flex':'none';el.textContent=n;
 }
-function setSort(s, el) {
-  currentSort = s;
-  document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
-  el.classList.add('active');
-  renderCards();
+function renderCart(){
+  const el=document.getElementById('cart-items');
+  const items=ads.filter(a=>cart.has(a.id));
+  if(!items.length){el.innerHTML=`<div class="empty"><div class="empty-icon">🛒</div>Корзина пуста<br><small style="font-size:12px">Добавляйте объявления кнопкой ＋</small></div>`;return;}
+  let total=0;
+  const rows=items.map(ad=>{
+    const n=parseInt(ad.price.replace(/\D/g,''));if(n)total+=n;
+    const color=COLORS[ad.id%COLORS.length],inits=ad.author.replace('@','').slice(0,2).toUpperCase();
+    return `<div class="cart-item">
+      <div class="avatar" style="background:${color};width:38px;height:38px;font-size:13px">${inits}</div>
+      <div class="cart-item-info"><div class="cart-item-title">${ad.title}</div><div class="cart-item-price">${ad.price}</div></div>
+      <button class="cart-remove" onclick="toggleCart(${ad.id})">✕</button>
+    </div>`;
+  }).join('');
+  el.innerHTML=rows+`<div class="cart-summary">
+    <div class="cart-sum-row"><span>Объявлений</span><span>${items.length}</span></div>
+    ${total?`<div class="cart-sum-row total"><span>Итого</span><span>${total.toLocaleString('ru')} ₽</span></div>`:''}
+  </div>
+  <button class="btn-primary" style="width:100%;margin-bottom:8px" onclick="sendCart()">✉️ Написать продавцам</button>
+  <button class="btn-secondary" style="width:100%" onclick="clearCart()">🗑 Очистить корзину</button>`;
 }
-
-// ═══════════════════════════════════════════════
-//  FAVOURITES
-// ═══════════════════════════════════════════════
-function toggleFav(e, id) {
-  e.stopPropagation();
-  if (favourites.has(id)) {
-    favourites.delete(id);
-    showToast('Убрано из избранного');
-  } else {
-    favourites.add(id);
-    showToast('❤️ Добавлено в избранное');
-  }
-  renderCards();
-  renderFavs();
-}
-
-function renderFavs() {
-  const favAds = ads.filter(a => favourites.has(a.id) && a.status === 'approved');
-  const c = document.getElementById('fav-container');
-  if (!favAds.length) {
-    c.innerHTML = `<div class="empty"><div class="empty-icon">🤍</div>Нет избранных объявлений<br><small>Нажмите 🤍 на карточке</small></div>`;
-    return;
-  }
-  renderCards('fav-container', favAds);
+function clearCart(){cart.clear();updateCartBadge();renderCart();renderCards();showToast('Корзина очищена');}
+function sendCart(){
+  const items=ads.filter(a=>cart.has(a.id));if(!items.length)return;
+  const usernames=[...new Set(items.map(a=>a.author.replace('@','')))];
+  if(tg&&usernames.length===1) tg.openTelegramLink(`https://t.me/${usernames[0]}`);
+  else showToast('Продавцы: '+usernames.map(u=>'@'+u).join(', '));
+  if(tg) tg.sendData(JSON.stringify({action:'cart_checkout',items:items.map(a=>a.id)}));
 }
 
-// ═══════════════════════════════════════════════
-//  DETAIL MODAL
-// ═══════════════════════════════════════════════
-function openAd(id) {
-  currentAd = ads.find(a => a.id === id);
-  if (!currentAd) return;
-  currentAd.views = (currentAd.views || 0) + 1;
-  document.getElementById('m-cat').textContent = currentAd.cat;
-  document.getElementById('m-title').textContent = currentAd.title;
-  document.getElementById('m-price').textContent = currentAd.price;
-  document.getElementById('m-desc').textContent = currentAd.desc;
-  document.getElementById('m-city').textContent = currentAd.city;
-  document.getElementById('m-author').textContent = currentAd.author;
-  document.getElementById('m-date').textContent = currentAd.date;
-  document.getElementById('m-views').textContent = `👁 ${currentAd.views} просмотров`;
-  const statusMap = { approved:'✅ Опубликовано', pending:'⏳ На модерации', rejected:'❌ Отклонено' };
-  document.getElementById('m-status').textContent = statusMap[currentAd.status] || '—';
+// ── ИЗБРАННОЕ ──
+function toggleFav(id){
+  favourites.has(id)?(favourites.delete(id),showToast('Убрано из избранного')):(favourites.add(id),showToast('❤️ Добавлено в избранное'));
+  renderCards();renderFavs();if(currentAd&&currentAd.id===id)updateModalBtns();
+}
+function toggleFavFromModal(){if(currentAd)toggleFav(currentAd.id);}
+function renderFavs(){
+  const list=ads.filter(a=>favourites.has(a.id)&&a.status==='approved');
+  const c=document.getElementById('fav-container');
+  if(!list.length){c.innerHTML=`<div class="empty"><div class="empty-icon">🤍</div>Нет избранных<br><small style="font-size:12px">Нажмите 🤍 на карточке</small></div>`;return;}
+  renderCards('fav-container',list);
+}
+
+// ── ПРОФИЛЬ ──
+function renderProfile(){
+  const myAds=ads.filter(a=>a.userId===me.id||a.author===me.username);
+  const color=COLORS[Math.abs(me.id||1)%COLORS.length];
+  const inits=(me.firstName||'?').slice(0,2).toUpperCase();
+  const adminBadge=isAdmin?`<div style="display:inline-block;background:var(--danger);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;margin-top:5px">АДМИНИСТРАТОР</div>`:'';
+  const myAdsHtml=myAds.length?myAds.map(ad=>{
+    const sc={approved:'sp-approved',pending:'sp-pending',rejected:'sp-rejected'}[ad.status];
+    const sl={approved:'Опубликовано',pending:'На модерации',rejected:'Отклонено'}[ad.status];
+    return `<div class="my-ad-row" onclick="openAd(${ad.id})">
+      <div class="my-ad-info"><div class="my-ad-title">${ad.title}</div><div class="my-ad-meta">${ad.cat} · ${ad.price} · 👁${ad.views}</div></div>
+      <span class="status-pill ${sc}">${sl}</span>
+    </div>`;
+  }).join(''):`<div class="empty" style="padding:20px 0"><div class="empty-icon" style="font-size:28px">📭</div>У вас нет объявлений</div>`;
+
+  document.getElementById('profile-content').innerHTML=`
+    <div class="profile-hero">
+      <div class="avatar profile-avatar" style="background:${color};width:60px;height:60px;font-size:22px">${inits}</div>
+      <div style="flex:1;min-width:0">
+        <div class="profile-name">${me.name||me.firstName}</div>
+        ${me.username?`<div class="profile-username">${me.username}</div>`:''}
+        <div class="profile-id">Telegram ID: ${me.id||'недоступен'}</div>
+        ${adminBadge}
+      </div>
+    </div>
+    <div class="profile-stats">
+      <div class="pstat"><div class="pstat-val">${myAds.length}</div><div class="pstat-label">Объявлений</div></div>
+      <div class="pstat"><div class="pstat-val">${myAds.filter(a=>a.status==='approved').length}</div><div class="pstat-label">Активных</div></div>
+      <div class="pstat"><div class="pstat-val">${favourites.size}</div><div class="pstat-label">Избранных</div></div>
+    </div>
+    <div class="section-title">Мои объявления</div>
+    ${myAdsHtml}
+    <div style="margin-top:14px">
+      <button class="btn-secondary" style="width:100%" onclick="showView('post')">✏️ Подать новое объявление</button>
+    </div>`;
+}
+
+// ── МОДАЛЬНОЕ ОКНО ──
+function openAd(id){
+  currentAd=ads.find(a=>a.id===id);if(!currentAd)return;
+  currentAd.views=(currentAd.views||0)+1;
+  document.getElementById('m-cat').textContent=currentAd.cat;
+  document.getElementById('m-title').textContent=currentAd.title;
+  document.getElementById('m-price').textContent=currentAd.price;
+  document.getElementById('m-desc').textContent=currentAd.desc;
+  document.getElementById('m-city').textContent=currentAd.city;
+  document.getElementById('m-author').textContent=currentAd.author;
+  document.getElementById('m-date').textContent=currentAd.date;
+  document.getElementById('m-views').textContent=`👁 ${currentAd.views} просмотров`;
+  document.getElementById('m-status').textContent={approved:'✅ Опубликовано',pending:'⏳ На модерации',rejected:'❌ Отклонено'}[currentAd.status]||'—';
+  updateModalBtns();
   document.getElementById('modal').classList.add('open');
-  if (tg) tg.BackButton.show();
+  if(tg)tg.BackButton.show();
 }
-
-function closeModal(e) {
-  if (e.target.id === 'modal') {
-    document.getElementById('modal').classList.remove('open');
-    if (tg) tg.BackButton.hide();
-  }
+function updateModalBtns(){
+  if(!currentAd)return;
+  document.getElementById('modal-cart-btn').textContent=cart.has(currentAd.id)?'🛒 Убрать из корзины':'🛒 Добавить в корзину';
+  document.getElementById('modal-fav-btn').textContent=favourites.has(currentAd.id)?'❤️ Убрать из избранного':'🤍 В избранное';
 }
+function closeModal(e){if(e.target.id==='modal'){document.getElementById('modal').classList.remove('open');if(tg)tg.BackButton.hide();}}
+function contactSeller(){if(!currentAd)return;const u=currentAd.author.replace('@','');if(tg)tg.openTelegramLink(`https://t.me/${u}`);else window.open(`https://t.me/${u}`,'_blank');}
+function shareAd(){if(!currentAd)return;if(tg)tg.switchInlineQuery(currentAd.title);else showToast('Скопировано!');}
+if(tg)tg.BackButton.onClick(()=>{document.getElementById('modal').classList.remove('open');tg.BackButton.hide();});
 
-function contactSeller() {
-  if (!currentAd) return;
-  const u = currentAd.author.replace('@','');
-  if (tg) tg.openTelegramLink(`https://t.me/${u}`);
-  else window.open(`https://t.me/${u}`, '_blank');
-}
-
-function shareAd() {
-  if (!currentAd) return;
-  const text = `${currentAd.title}\n${currentAd.price} · ${currentAd.city}\n\nZALET — Доска объявлений`;
-  if (tg) tg.switchInlineQuery(text);
-  else showToast('Скопировано!');
-}
-
-if (tg) {
-  tg.BackButton.onClick(() => {
-    document.getElementById('modal').classList.remove('open');
-    tg.BackButton.hide();
+// ── НАВИГАЦИЯ ──
+function showView(name){
+  ['feed','post','profile','cart','fav','admin'].forEach(v=>{
+    document.getElementById(v+'-view').classList.toggle('active',v===name);
+    const nb=document.getElementById('nav-'+v);if(nb)nb.classList.toggle('active',v===name);
   });
+  if(name==='fav')renderFavs();
+  if(name==='cart')renderCart();
+  if(name==='profile')renderProfile();
+  if(name==='admin')renderAdmin();
+  window.scrollTo(0,0);
+}
+function goFeed(){showView('feed');document.getElementById('post-form').style.display='block';document.getElementById('success-msg').style.display='none';clearForm();}
+
+// ── ПОДАТЬ ОБЪЯВЛЕНИЕ ──
+function selectCat(el,cat){selectedCat=cat;document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('sel'));el.classList.add('sel');}
+function countChars(iId,cId,max){const l=document.getElementById(iId).value.length;const el=document.getElementById(cId);el.textContent=`${l} / ${max}`;el.style.color=l>max*.9?'var(--warn)':'var(--muted)';}
+function clearForm(){['f-title','f-desc','f-price','f-city','f-contact'].forEach(id=>document.getElementById(id).value='');selectedCat='';document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('sel'));document.getElementById('cc-title').textContent='0 / 80';document.getElementById('cc-desc').textContent='0 / 500';}
+function submitAd(){
+  const title=document.getElementById('f-title').value.trim(),desc=document.getElementById('f-desc').value.trim(),price=document.getElementById('f-price').value.trim(),city=document.getElementById('f-city').value.trim(),contact=document.getElementById('f-contact').value.trim();
+  if(!selectedCat||!title||!desc||!price||!city||!contact){const m='Заполните все поля и выберите категорию.';if(tg)tg.showAlert(m);else alert(m);return;}
+  const newAd={id:Date.now(),cat:selectedCat,title,desc,price,city,author:contact.startsWith('@')?contact:'@'+contact,date:'только что',status:'pending',views:0,userId:me.id};
+  ads.unshift(newAd);
+  updatePendingDot();
+  document.getElementById('post-form').style.display='none';
+  document.getElementById('success-msg').style.display='block';
+  if(tg)tg.sendData(JSON.stringify({action:'new_ad',...newAd}));
 }
 
-// ═══════════════════════════════════════════════
-//  NAVIGATION
-// ═══════════════════════════════════════════════
-function showView(name) {
-  ['feed','post','fav','admin'].forEach(v => {
-    document.getElementById(v+'-view').classList.toggle('active', v === name);
-    const nb = document.getElementById('nav-'+v);
-    if (nb) nb.classList.toggle('active', v === name);
-  });
-  if (name === 'fav') renderFavs();
-  if (name === 'admin') renderAdmin();
-}
-
-function goFeed() {
-  showView('feed');
-  document.getElementById('post-form').style.display = 'block';
-  document.getElementById('success-msg').style.display = 'none';
-  clearForm();
-}
-
-// ═══════════════════════════════════════════════
-//  POST AD
-// ═══════════════════════════════════════════════
-function selectCat(el, cat) {
-  selectedCat = cat;
-  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('sel'));
-  el.classList.add('sel');
-}
-
-function countChars(inputId, countId, max) {
-  const len = document.getElementById(inputId).value.length;
-  const el = document.getElementById(countId);
-  el.textContent = `${len} / ${max}`;
-  el.style.color = len > max * .9 ? 'var(--warn)' : 'var(--muted)';
-}
-
-function clearForm() {
-  ['f-title','f-desc','f-price','f-city','f-contact'].forEach(id => {
-    document.getElementById(id).value = '';
-  });
-  selectedCat = '';
-  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('sel'));
-  document.getElementById('cc-title').textContent = '0 / 80';
-  document.getElementById('cc-desc').textContent = '0 / 500';
-}
-
-function submitAd() {
-  const title   = document.getElementById('f-title').value.trim();
-  const desc    = document.getElementById('f-desc').value.trim();
-  const price   = document.getElementById('f-price').value.trim();
-  const city    = document.getElementById('f-city').value.trim();
-  const contact = document.getElementById('f-contact').value.trim();
-
-  if (!selectedCat || !title || !desc || !price || !city || !contact) {
-    const msg = 'Заполните все поля и выберите категорию.';
-    if (tg) tg.showAlert(msg); else alert(msg);
+// ── АДМИН ──
+function renderAdmin(){
+  if(!isAdmin){
+    document.getElementById('admin-locked').style.display='block';
+    document.getElementById('admin-panel').style.display='none';
     return;
   }
-
-  const newAd = {
-    id: Date.now(),
-    cat: selectedCat, title, desc, price, city,
-    author: contact.startsWith('@') ? contact : '@' + contact,
-    date: 'только что',
-    status: 'pending',
-    views: 0
-  };
-  ads.unshift(newAd);
-  updatePendingBadge();
-
-  document.getElementById('post-form').style.display = 'none';
-  document.getElementById('success-msg').style.display = 'block';
-
-  if (tg) tg.sendData(JSON.stringify({ action: 'new_ad', ...newAd }));
-}
-
-// ═══════════════════════════════════════════════
-//  ADMIN
-// ═══════════════════════════════════════════════
-function toggleAdminAccess() {
-  isAdmin = !isAdmin;
-  document.getElementById('admin-toggle-btn').classList.toggle('on', isAdmin);
-  document.getElementById('nav-admin').style.display = isAdmin ? '' : 'none';
-  if (isAdmin) {
-    showToast('🔓 Режим администратора включён');
-    showView('admin');
-  } else {
-    showToast('🔒 Режим администратора отключён');
-    showView('feed');
-  }
-}
-
-function updatePendingBadge() {
-  const count = ads.filter(a => a.status === 'pending').length;
-  const badge = document.getElementById('pending-badge');
-  badge.style.display = count ? '' : 'none';
-  badge.textContent = count + ' на модерации';
-  document.getElementById('st-pending') && (document.getElementById('st-pending').textContent = count);
-}
-
-function renderAdmin() {
-  const total    = ads.length;
-  const pending  = ads.filter(a => a.status === 'pending').length;
-  const approved = ads.filter(a => a.status === 'approved').length;
-  const rejected = ads.filter(a => a.status === 'rejected').length;
-
-  document.getElementById('st-total').textContent    = total;
-  document.getElementById('st-pending').textContent  = pending;
-  document.getElementById('st-approved').textContent = approved;
-  document.getElementById('st-rejected').textContent = rejected;
-
+  document.getElementById('admin-locked').style.display='none';
+  document.getElementById('admin-panel').style.display='block';
+  document.getElementById('st-total').textContent=ads.length;
+  document.getElementById('st-pending').textContent=ads.filter(a=>a.status==='pending').length;
+  document.getElementById('st-approved').textContent=ads.filter(a=>a.status==='approved').length;
+  document.getElementById('st-rejected').textContent=ads.filter(a=>a.status==='rejected').length;
   renderAdminTab(currentAdminTab);
 }
-
-function adminTab(name, el) {
-  currentAdminTab = name;
-  document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  ['moderation','all','users'].forEach(n => {
-    document.getElementById('admin-'+n).style.display = n === name ? 'block' : 'none';
-  });
+function adminTab(name,el){
+  currentAdminTab=name;
+  document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');
+  ['moderation','all','users'].forEach(n=>document.getElementById('admin-'+n).style.display=n===name?'block':'none');
   renderAdminTab(name);
 }
-
-function renderAdminTab(name) {
-  if (name === 'moderation') {
-    const el = document.getElementById('admin-moderation');
-    const pending = ads.filter(a => a.status === 'pending');
-    if (!pending.length) {
-      el.innerHTML = `<div class="empty"><div class="empty-icon">✅</div>Нет объявлений на модерации</div>`;
-      return;
-    }
-    el.innerHTML = pending.map(ad => `
-      <div class="mod-card">
-        <div class="mod-card-title">${ad.title}</div>
-        <div class="mod-card-meta">${ad.cat} · ${ad.price} · ${ad.city} · ${ad.author}</div>
-        <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">${ad.desc.slice(0,100)}...</div>
-        <div class="mod-actions">
-          <button class="mod-btn approve" onclick="moderateAd(${ad.id},'approved')">✅ Одобрить</button>
-          <button class="mod-btn reject"  onclick="moderateAd(${ad.id},'rejected')">❌ Отклонить</button>
-        </div>
-      </div>`).join('');
+function renderAdminTab(name){
+  if(name==='moderation'){
+    const el=document.getElementById('admin-moderation');
+    const list=ads.filter(a=>a.status==='pending');
+    el.innerHTML=list.length?list.map(ad=>`<div class="mod-card">
+      <div class="mod-card-title">${ad.title}</div>
+      <div class="mod-card-meta">${ad.cat} · ${ad.price} · ${ad.city} · ${ad.author}</div>
+      <div class="mod-card-desc">${ad.desc.slice(0,120)}…</div>
+      <div class="mod-actions">
+        <button class="mod-btn approve" onclick="moderateAd(${ad.id},'approved')">✅ Одобрить</button>
+        <button class="mod-btn reject" onclick="moderateAd(${ad.id},'rejected')">❌ Отклонить</button>
+        <button class="mod-btn del" onclick="deleteAd(${ad.id})">🗑</button>
+      </div></div>`).join(''):`<div class="empty"><div class="empty-icon">✅</div>Нет объявлений на модерации</div>`;
   }
-
-  if (name === 'all') {
-    const el = document.getElementById('admin-all');
-    el.innerHTML = ads.map(ad => {
-      const statusIcon = {approved:'✅',pending:'⏳',rejected:'❌'}[ad.status];
-      return `
-        <div class="mod-card">
-          <div class="mod-card-title">${statusIcon} ${ad.title}</div>
-          <div class="mod-card-meta">${ad.cat} · ${ad.price} · ${ad.city} · 👁 ${ad.views}</div>
-          <div class="mod-actions">
-            ${ad.status !== 'approved' ? `<button class="mod-btn approve" onclick="moderateAd(${ad.id},'approved')">✅ Одобрить</button>` : ''}
-            ${ad.status !== 'rejected' ? `<button class="mod-btn reject"  onclick="moderateAd(${ad.id},'rejected')">❌ Отклонить</button>` : ''}
-            <button class="mod-btn edit" onclick="deleteAd(${ad.id})">🗑 Удалить</button>
-          </div>
-        </div>`;
+  if(name==='all'){
+    const el=document.getElementById('admin-all');
+    el.innerHTML=ads.map(ad=>{
+      const icon={approved:'✅',pending:'⏳',rejected:'❌'}[ad.status];
+      return `<div class="mod-card">
+        <div class="mod-card-title">${icon} ${ad.title}</div>
+        <div class="mod-card-meta">${ad.cat} · ${ad.price} · ${ad.city} · 👁${ad.views}</div>
+        <div class="mod-actions">
+          ${ad.status!=='approved'?`<button class="mod-btn approve" onclick="moderateAd(${ad.id},'approved')">✅</button>`:''}
+          ${ad.status!=='rejected'?`<button class="mod-btn reject" onclick="moderateAd(${ad.id},'rejected')">❌</button>`:''}
+          <button class="mod-btn del" onclick="deleteAd(${ad.id})">🗑 Удалить</button>
+        </div></div>`;
     }).join('');
   }
-
-  if (name === 'users') {
-    const el = document.getElementById('admin-users');
-    el.innerHTML = USERS.map(u => `
-      <div class="user-row">
-        <div>
-          <div style="font-weight:600;">${u.username}</div>
-          <div style="font-size:11px;color:var(--muted);">${u.ads} объявлений${u.banned ? ' · <span style="color:var(--danger)">ЗАБЛОКИРОВАН</span>' : ''}</div>
-        </div>
-        ${u.banned
-          ? `<button class="unban-btn" onclick="toggleBan('${u.username}',false)">Разблокировать</button>`
-          : `<button class="ban-btn"   onclick="toggleBan('${u.username}',true)">Заблокировать</button>`
-        }
-      </div>`).join('');
+  if(name==='users'){
+    const el=document.getElementById('admin-users');
+    el.innerHTML=usersDB.map(u=>`<div class="user-row">
+      <div>
+        <div style="font-weight:600">${u.name} ${u.username}</div>
+        <div style="font-size:11px;color:var(--muted)">ID: ${u.id}${u.banned?' · <span style="color:var(--danger)">ЗАБЛОКИРОВАН</span>':''}</div>
+      </div>
+      ${u.banned?`<button class="unban-btn" onclick="toggleBan(${u.id},false)">Разблокировать</button>`:`<button class="ban-btn" onclick="toggleBan(${u.id},true)">Заблокировать</button>`}
+    </div>`).join('');
   }
 }
-
-function moderateAd(id, status) {
-  const ad = ads.find(a => a.id === id);
-  if (!ad) return;
-  ad.status = status;
-  showToast(status === 'approved' ? '✅ Объявление одобрено' : '❌ Объявление отклонено');
-  updatePendingBadge();
-  renderAdmin();
-  renderCards();
-
-  if (tg) tg.sendData(JSON.stringify({ action: 'moderate', id, status }));
+function moderateAd(id,status){
+  const ad=ads.find(a=>a.id===id);if(!ad)return;
+  ad.status=status;
+  showToast(status==='approved'?'✅ Объявление одобрено':'❌ Отклонено');
+  updatePendingDot();renderAdmin();renderCards();
+  if(tg)tg.sendData(JSON.stringify({action:'moderate',id,status}));
 }
+function deleteAd(id){ads=ads.filter(a=>a.id!==id);showToast('🗑 Удалено');renderAdmin();renderCards();}
+function toggleBan(id,ban){const u=usersDB.find(u=>u.id===id);if(u)u.banned=ban;showToast(ban?'🚫 Пользователь заблокирован':'✅ Разблокирован');renderAdminTab('users');}
+function updatePendingDot(){const n=ads.filter(a=>a.status==='pending').length;const d=document.getElementById('admin-dot');if(d)d.style.display=n?'':'none';}
 
-function deleteAd(id) {
-  ads = ads.filter(a => a.id !== id);
-  showToast('🗑 Объявление удалено');
-  renderAdmin();
-  renderCards();
-}
+// ── TOAST ──
+let toastT;
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2000);}
 
-function toggleBan(username, ban) {
-  const u = USERS.find(u => u.username === username);
-  if (u) u.banned = ban;
-  showToast(ban ? `🚫 ${username} заблокирован` : `✅ ${username} разблокирован`);
-  renderAdminTab('users');
-}
-
-// ═══════════════════════════════════════════════
-//  TOAST
-// ═══════════════════════════════════════════════
-let toastTimer;
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
-}
-
-// ═══════════════════════════════════════════════
-//  INIT
-// ═══════════════════════════════════════════════
-updatePendingBadge();
-renderCards();
+// ── INIT ──
+updateCartBadge();updatePendingDot();renderCards();
 </script>
 </body>
 </html>

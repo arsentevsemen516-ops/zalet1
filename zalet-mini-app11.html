@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ZALET — Одежда и аксессуары</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap');
+:root{--bg:#09090b;--s1:#111113;--s2:#18181b;--s3:#27272a;--border:#3f3f46;--accent:#22d3ee;--adim:#083344;--accent2:#f472b6;--warn:#fb923c;--danger:#f87171;--green:#4ade80;--gold:#fbbf24;--text:#fafafa;--muted:#71717a;--muted2:#52525b;--r:12px}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+.topbar{position:sticky;top:0;z-index:50;background:rgba(9,9,11,.96);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);padding:11px 14px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;letter-spacing:-1px;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.logo-sub{font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.5px;margin-top:-2px}
+.topbar-right{display:flex;align-items:center;gap:8px}
+.topbar-btn{background:var(--s3);border:1px solid var(--border);color:var(--muted);font-size:17px;width:34px;height:34px;border-radius:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0}
+.cart-count{position:absolute;top:-5px;right:-5px;background:var(--danger);color:#fff;font-size:10px;font-weight:800;width:17px;height:17px;border-radius:50%;display:none;align-items:center;justify-content:center}
+.view{display:none}.view.active{display:block}
+.tabs{display:flex;gap:6px;padding:11px 13px 7px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex-shrink:0;padding:5px 13px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:transparent;color:var(--muted);transition:all .18s}
+.tab.active{background:var(--accent);color:#000;border-color:var(--accent)}
+.tab.gold-tab{border-color:var(--gold);color:var(--gold)}
+.tab.gold-tab.active{background:var(--gold);color:#000}
+.sort-bar{display:flex;align-items:center;gap:7px;padding:0 13px 9px}
+.sort-btn{background:var(--s2);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-family:inherit;font-size:12px;font-weight:600;padding:5px 10px;cursor:pointer;transition:all .15s}
+.sort-btn.active{color:var(--accent);border-color:var(--accent);background:var(--adim)}
+.sort-label{margin-left:auto;color:var(--muted);font-size:12px}
+.search-wrap{position:relative;padding:0 13px 9px}
+.search-input{width:100%;background:var(--s1);border:1.5px solid var(--border);border-radius:var(--r);color:var(--text);font-family:inherit;font-size:14px;padding:10px 13px 10px 37px;outline:none;transition:border-color .2s}
+.search-input:focus{border-color:var(--accent)}
+.search-icon{position:absolute;left:25px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:14px}
+#feed-view,#orig-view{padding-bottom:80px}
+.card{margin:0 11px 8px;background:var(--s1);border:1px solid var(--border);border-radius:var(--r);cursor:pointer;transition:border-color .15s,transform .1s;animation:fadeUp .25s ease both;position:relative;overflow:hidden}
+.card:active{transform:scale(.985)}.card.orig-card{border-color:#3d3000}
+.card-ribbon{position:absolute;top:0;left:0;right:0;height:2px;z-index:1}
+.card-photo{width:100%;height:200px;object-fit:cover;display:block;background:var(--s2)}
+.card-no-photo{width:100%;height:130px;display:flex;align-items:center;justify-content:center;background:var(--s2);font-size:42px}
+.card-photo-wrap{position:relative}
+.overlay-badge{position:absolute;top:8px;left:8px;font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px}
+.badge-orig{background:rgba(0,0,0,.8);border:1px solid var(--gold);color:var(--gold)}
+.badge-fake{background:rgba(0,0,0,.8);border:1px solid var(--danger);color:var(--danger)}
+.photo-cnt{position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,.7);color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:8px}
+.card-body{padding:11px 13px 38px}
+.card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px}
+.card-cat{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;padding:3px 8px;border-radius:5px;background:var(--s3);color:var(--accent);flex-shrink:0}
+.card-price{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--accent);white-space:nowrap}
+.card-title{font-size:14px;font-weight:600;margin-bottom:3px;line-height:1.35}
+.card-desc{font-size:12px;color:var(--muted);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card-footer{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:7px;border-top:1px solid var(--s3);font-size:11px;color:var(--muted)}
+.card-author{display:flex;align-items:center;gap:5px}
+.card-btns{position:absolute;bottom:8px;right:10px;display:flex;gap:5px}
+.ca-btn{background:var(--s2);border:1px solid var(--border);border-radius:7px;font-size:14px;width:30px;height:27px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.ca-btn:active{transform:scale(.88)}.ca-btn.fav-on{background:#3b0a2a;border-color:var(--accent2)}.ca-btn.cart-on{background:var(--adim);border-color:var(--accent)}
+.av{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#000;flex-shrink:0}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.empty{text-align:center;padding:50px 20px;color:var(--muted);font-size:14px}
+.empty-icon{font-size:38px;margin-bottom:10px}
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200}
+.modal-overlay.open{display:flex;align-items:flex-end;animation:fadeIn .18s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{background:var(--s1);border-radius:20px 20px 0 0;width:100%;max-height:92vh;overflow-y:auto;padding:0 0 36px;animation:slideUp .22s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:none}}
+.modal-top{padding:14px 16px 0;position:sticky;top:0;background:var(--s1);z-index:1}
+.modal-handle{width:36px;height:4px;background:var(--s3);border-radius:2px;margin:0 auto 12px}
+.slider{position:relative;width:100%;height:280px;background:var(--s2);overflow:hidden}
+.slider img{width:100%;height:100%;object-fit:cover;display:none}.slider img.on{display:block}
+.slider-dots{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);display:flex;gap:5px}
+.sdot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.4);cursor:pointer;transition:background .2s}.sdot.on{background:#fff}
+.sl-btn{position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.5);border:none;color:#fff;font-size:20px;width:36px;height:36px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.sl-prev{left:8px}.sl-next{right:8px}
+.mc{padding:14px 16px 0}
+.mc-cat{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:var(--accent);margin-bottom:5px}
+.mc-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;line-height:1.2;margin-bottom:6px}
+.mc-price{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--accent);margin-bottom:10px}
+.mc-desc{font-size:14px;line-height:1.7;color:#ccc;margin-bottom:14px}
+.mc-meta{background:var(--s2);border-radius:10px;padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:8px}
+.mc-meta-row{display:flex;justify-content:space-between;font-size:13px}
+.mc-meta-row span:first-child{color:var(--muted)}.mc-meta-row span:last-child{font-weight:600}
+.mc-views{font-size:12px;color:var(--muted);text-align:right;margin-bottom:12px}
+.mc-btns{display:flex;flex-direction:column;gap:8px}
+.btn-p{width:100%;background:var(--accent);color:#000;border:none;border-radius:12px;padding:14px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer}
+.btn-p:active{opacity:.8}
+.btn-s{width:100%;background:var(--s2);color:var(--text);border:1px solid var(--border);border-radius:12px;padding:12px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.btn-s:hover{border-color:var(--accent)}
+.orig-pill{display:flex;align-items:center;gap:5px;background:#2d2000;border:1px solid var(--gold);color:var(--gold);font-size:12px;font-weight:700;padding:6px 12px;border-radius:8px;margin-bottom:10px}
+.fake-pill{display:flex;align-items:center;gap:5px;background:#1a0000;border:1px solid var(--danger);color:var(--danger);font-size:12px;font-weight:700;padding:6px 12px;border-radius:8px;margin-bottom:10px}
+/* POST */
+#post-view{padding:14px 13px 90px}
+.form-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;margin-bottom:15px}
+.field{margin-bottom:11px}
+.field label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:5px}
+.field input,.field textarea,.field select{width:100%;background:var(--s1);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:inherit;font-size:14px;padding:11px 13px;outline:none;transition:border-color .2s}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--accent)}
+.field select option{background:#222}.field textarea{resize:none;height:86px;line-height:1.5}
+.cc{font-size:11px;color:var(--muted);text-align:right;margin-top:3px}
+.cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:11px}
+.cat-btn{background:var(--s1);border:1.5px solid var(--border);border-radius:9px;color:var(--muted);font-family:inherit;font-size:12px;font-weight:600;padding:9px 4px;cursor:pointer;transition:all .15s;text-align:center}
+.cat-btn.sel{background:var(--adim);border-color:var(--accent);color:var(--accent)}
+.photo-zone{border:2px dashed var(--border);border-radius:12px;padding:16px;text-align:center;cursor:pointer;transition:border-color .2s;margin-bottom:8px}
+.photo-zone:hover{border-color:var(--accent)}
+.photo-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px}
+.pt{position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--s2)}
+.pt img{width:100%;height:100%;object-fit:cover}
+.pt-del{position:absolute;top:3px;right:3px;background:rgba(0,0,0,.75);border:none;color:#fff;font-size:11px;width:20px;height:20px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.btn-submit{width:100%;background:var(--accent);color:#000;border:none;border-radius:12px;padding:15px;font-family:'Syne',sans-serif;font-size:14px;font-weight:800;cursor:pointer;margin-top:6px}
+.btn-submit:active{opacity:.85;transform:scale(.98)}
+.info-box{font-size:12px;color:var(--muted);padding:10px 12px;background:var(--s1);border-radius:10px;border:1px solid var(--s3);margin-bottom:11px;line-height:1.5}
+.success-msg{display:none;text-align:center;padding:50px 20px;animation:fadeUp .4s ease}
+.success-icon{font-size:54px;margin-bottom:14px}
+.success-msg h2{font-family:'Syne',sans-serif;font-size:20px;margin-bottom:8px}
+.success-msg p{color:var(--muted);font-size:13px;line-height:1.6}
+/* PROFILE */
+#profile-view{padding:14px 13px 90px}
+.p-hero{display:flex;align-items:center;gap:14px;margin-bottom:18px;padding:16px;background:var(--s1);border:1px solid var(--border);border-radius:14px}
+.p-ava{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#000;flex-shrink:0}
+.p-name{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-bottom:3px}
+.p-un{font-size:13px;color:var(--muted)}.p-id{font-size:11px;color:var(--muted2);margin-top:2px}
+.p-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.ps{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:12px 10px;text-align:center}
+.ps-v{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--accent)}
+.ps-l{font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.sec-title{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:9px}
+.my-row{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:11px 13px;margin-bottom:7px;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+.my-row:hover{border-color:var(--accent)}
+.my-info{flex:1;min-width:0}
+.my-t{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px}
+.my-m{font-size:11px;color:var(--muted)}
+.sp{font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;flex-shrink:0;margin-left:8px}
+.sp-a{background:#14532d;color:var(--green)}.sp-p{background:#431407;color:var(--warn)}.sp-r{background:#450a0a;color:var(--danger)}
+/* CART */
+#cart-view{padding:14px 13px 90px}
+.cart-hdr{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+.cart-clr{font-size:12px;color:var(--danger);cursor:pointer;font-weight:600;background:none;border:none;font-family:inherit}
+.ci{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:10px;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.ci-img{width:52px;height:52px;border-radius:8px;object-fit:cover;background:var(--s2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;overflow:hidden}
+.ci-info{flex:1;min-width:0}
+.ci-t{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px}
+.ci-p{font-size:13px;color:var(--accent);font-weight:700}
+.ci-rm{background:var(--s3);border:1px solid var(--border);border-radius:7px;font-size:14px;width:30px;height:30px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.c-sum{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:12px}
+.c-row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px}
+.c-row.tot{font-weight:700;font-size:15px;color:var(--accent);margin-bottom:0}
+/* FAV */
+#fav-view{padding-bottom:80px}
+/* ADMIN */
+#admin-view{padding:13px 13px 90px}
+.adm-hdr{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.adm-badge{background:var(--danger);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px}
+.sg{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-bottom:14px}
+.sc{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:11px 13px}
+.sv{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--accent)}
+.sl{font-size:11px;color:var(--muted);font-weight:600;margin-top:2px}
+.sc.warn .sv{color:var(--warn)}.sc.grn .sv{color:var(--green)}
+.adm-tabs{display:flex;gap:6px;margin-bottom:13px;overflow-x:auto;scrollbar-width:none}
+.adm-tabs::-webkit-scrollbar{display:none}
+.adm-tab{flex-shrink:0;padding:6px 13px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid var(--border);background:transparent;color:var(--muted);transition:all .15s}
+.adm-tab.active{background:var(--s3);color:var(--text);border-color:var(--muted2)}
+.mc-card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);margin-bottom:9px;overflow:hidden}
+.mc-card-photo{width:100%;height:150px;object-fit:cover;display:block;background:var(--s2)}
+.mc-card-body{padding:11px 13px}
+.mc-card-title{font-size:14px;font-weight:600;margin-bottom:3px}
+.mc-card-meta{font-size:12px;color:var(--muted);margin-bottom:7px;line-height:1.6}
+.mc-card-desc{font-size:12px;color:var(--muted2);margin-bottom:10px;line-height:1.5}
+.mc-acts{display:flex;gap:6px;flex-wrap:wrap}
+.mb{border:none;border-radius:9px;padding:8px 10px;font-family:'Syne',sans-serif;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap}
+.mb:active{opacity:.7}
+.mb-ok{background:var(--green);color:#000}.mb-no{background:var(--danger);color:#fff}
+.mb-orig{background:#2d2000;color:var(--gold);border:1px solid var(--gold)}
+.mb-fake{background:#1a0000;color:var(--danger);border:1px solid var(--danger)}
+.mb-clr{background:var(--s3);color:var(--muted);border:1px solid var(--border)}
+.mb-del{background:var(--s3);color:var(--muted);border:1px solid var(--border)}
+.u-row{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:11px 13px;display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}
+.ban-btn{background:var(--danger);color:#fff;border:none;border-radius:7px;padding:5px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit}
+.lock{text-align:center;padding:70px 20px;color:var(--muted)}
+.lock-icon{font-size:52px;margin-bottom:14px}
+.lock h3{font-family:'Syne',sans-serif;font-size:19px;margin-bottom:8px;color:var(--text)}
+.lock code{background:var(--s3);padding:2px 7px;border-radius:5px;font-size:12px;color:var(--accent)}
+/* NAV */
+.bnav{position:fixed;bottom:0;left:0;right:0;background:rgba(17,17,19,.97);backdrop-filter:blur(12px);border-top:1px solid var(--border);display:flex;padding:8px 0 16px;z-index:50}
+.nb{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;border:none;background:none;color:var(--muted2);font-size:9px;font-family:inherit;font-weight:700;text-transform:uppercase;letter-spacing:.3px;transition:color .18s;position:relative}
+.nb.active{color:var(--accent)}
+.nb-icon{font-size:19px;line-height:1}
+.nb-dot{position:absolute;top:0;right:calc(50% - 16px);width:7px;height:7px;background:var(--danger);border-radius:50%;display:none}
+.toast{position:fixed;bottom:78px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--s3);border:1px solid var(--border);color:var(--text);font-size:13px;font-weight:600;padding:9px 18px;border-radius:20px;z-index:300;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div><div class="logo">ZALET</div><div class="logo-sub">ОДЕЖДА И АКСЕССУАРЫ</div></div>
+  <div class="topbar-right">
+    <button class="topbar-btn" onclick="showView('cart')">🛒<span class="cart-count" id="cart-count"></span></button>
+    <button class="topbar-btn" id="admin-topbtn" onclick="showView('admin')" style="display:none">⚙️</button>
+  </div>
+</div>
+
+<!-- FEED -->
+<div class="view active" id="feed-view">
+  <div class="search-wrap" style="padding-top:12px">
+    <span class="search-icon">🔍</span>
+    <input class="search-input" id="search-input" placeholder="Найти одежду, бренд, размер..." oninput="filterCards()">
+  </div>
+  <div class="tabs" id="cat-tabs">
+    <button class="tab active" onclick="filterCat('Все',this)">Все</button>
+    <button class="tab" onclick="filterCat('Верхняя одежда',this)">Верхняя</button>
+    <button class="tab" onclick="filterCat('Футболки и топы',this)">Топы</button>
+    <button class="tab" onclick="filterCat('Брюки и джинсы',this)">Брюки</button>
+    <button class="tab" onclick="filterCat('Платья и юбки',this)">Платья</button>
+    <button class="tab" onclick="filterCat('Обувь',this)">Обувь</button>
+    <button class="tab" onclick="filterCat('Сумки',this)">Сумки</button>
+    <button class="tab" onclick="filterCat('Аксессуары',this)">Аксессуары</button>
+    <button class="tab gold-tab" onclick="showView('orig')">⭐ Оригиналы</button>
+  </div>
+  <div class="sort-bar">
+    <button class="sort-btn active" onclick="setSort('new',this)">Новые</button>
+    <button class="sort-btn" onclick="setSort('price',this)">По цене</button>
+    <button class="sort-btn" onclick="setSort('views',this)">Популярные</button>
+    <span class="sort-label" id="total-count"></span>
+  </div>
+  <div id="cards-container"></div>
+</div>
+
+<!-- ORIGINALS -->
+<div class="view" id="orig-view">
+  <div style="padding:14px 13px 4px">
+    <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800;margin-bottom:4px">⭐ Только оригиналы</div>
+    <div style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:10px">Товары с подтверждённой оригинальностью — проверено администраторами ZALET</div>
+  </div>
+  <div class="sort-bar">
+    <button class="sort-btn active" onclick="setOrigSort('new',this)">Новые</button>
+    <button class="sort-btn" onclick="setOrigSort('price',this)">По цене</button>
+    <button class="sort-btn" onclick="setOrigSort('views',this)">Популярные</button>
+    <span class="sort-label" id="orig-count"></span>
+  </div>
+  <div id="orig-container" style="padding-bottom:80px"></div>
+</div>
+
+<!-- POST -->
+<div class="view" id="post-view">
+  <div id="post-form" style="padding:14px 13px 90px">
+    <div class="form-title">✏️ Подать объявление</div>
+    <div class="field"><label>Категория</label>
+      <div class="cat-grid">
+        <button class="cat-btn" onclick="selCat(this,'Верхняя одежда')">🧥 Верхняя</button>
+        <button class="cat-btn" onclick="selCat(this,'Футболки и топы')">👕 Топы</button>
+        <button class="cat-btn" onclick="selCat(this,'Брюки и джинсы')">👖 Брюки</button>
+        <button class="cat-btn" onclick="selCat(this,'Платья и юбки')">👗 Платья</button>
+        <button class="cat-btn" onclick="selCat(this,'Обувь')">👟 Обувь</button>
+        <button class="cat-btn" onclick="selCat(this,'Сумки')">👜 Сумки</button>
+        <button class="cat-btn" onclick="selCat(this,'Аксессуары')">💍 Аксессуары</button>
+        <button class="cat-btn" onclick="selCat(this,'Спортивная')">🏃 Спорт</button>
+        <button class="cat-btn" onclick="selCat(this,'Другое')">📦 Другое</button>
+      </div>
+    </div>
+    <div class="field"><label>Фото товара (до 10 штук)</label>
+      <div class="photo-zone" onclick="document.getElementById('photo-input').click()">
+        <input type="file" id="photo-input" accept="image/*" multiple style="display:none" onchange="handlePhotos(this)">
+        <div style="font-size:28px;margin-bottom:6px">📸</div>
+        <div style="font-size:13px;color:var(--muted)">Нажмите чтобы добавить фото</div>
+        <div style="font-size:11px;color:var(--muted2);margin-top:4px">JPG, PNG · максимум 10 фото</div>
+      </div>
+      <div class="photo-grid" id="photo-preview"></div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px" id="photo-count"></div>
+    </div>
+    <div class="field"><label>Название</label><input type="text" id="f-title" maxlength="80" placeholder="Например: Куртка Nike Air, размер M" oninput="cc('f-title','cc-t',80)"><div class="cc" id="cc-t">0/80</div></div>
+    <div class="field"><label>Описание</label><textarea id="f-desc" maxlength="500" placeholder="Бренд, размер, состояние, материал..." oninput="cc('f-desc','cc-d',500)"></textarea><div class="cc" id="cc-d">0/500</div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div class="field"><label>Размер</label>
+        <select id="f-size"><option value="">—</option><option>XS</option><option>S</option><option>M</option><option>L</option><option>XL</option><option>XXL</option><option>36</option><option>37</option><option>38</option><option>39</option><option>40</option><option>41</option><option>42</option><option>43</option><option>44</option><option>45</option><option>Универсальный</option></select>
+      </div>
+      <div class="field"><label>Состояние</label>
+        <select id="f-cond"><option value="">—</option><option>Новое с бирками</option><option>Новое без бирок</option><option>Отличное</option><option>Хорошее</option><option>Удовлетворительное</option></select>
+      </div>
+    </div>
+    <div class="field"><label>Цена</label><input type="text" id="f-price" placeholder="5 000 ₽ или Торг"></div>
+    <div class="field"><label>Город</label><input type="text" id="f-city" placeholder="Москва, Санкт-Петербург..."></div>
+    <div class="field"><label>Контакт Telegram</label><input type="text" id="f-contact" placeholder="@username"></div>
+    <div class="info-box">ℹ️ Объявление появится после проверки модератором. Метку «Оригинал» ставит администратор после проверки документов.</div>
+    <button class="btn-submit" onclick="submitAd()">Отправить на модерацию →</button>
+  </div>
+  <div class="success-msg" id="success-msg">
+    <div class="success-icon">🚀</div>
+    <h2>Объявление отправлено!</h2>
+    <p>После одобрения оно появится в ленте.</p><br>
+    <button class="btn-submit" onclick="goFeed()" style="margin-top:0">К ленте</button>
+  </div>
+</div>
+
+<!-- PROFILE -->
+<div class="view" id="profile-view"><div id="profile-content" style="padding:14px 13px 90px"></div></div>
+
+<!-- CART -->
+<div class="view" id="cart-view">
+  <div class="cart-hdr">🛒 Корзина<button class="cart-clr" onclick="clearCart()">Очистить</button></div>
+  <div id="cart-items"></div>
+</div>
+
+<!-- FAV -->
+<div class="view" id="fav-view">
+  <div style="padding:14px 13px 0"><div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800;margin-bottom:12px">❤️ Избранное</div></div>
+  <div id="fav-container" style="padding-bottom:80px"></div>
+</div>
+
+<!-- ADMIN -->
+<div class="view" id="admin-view">
+  <div id="admin-locked" style="display:none">
+    <div class="lock"><div class="lock-icon">🔒</div><h3>Доступ закрыт</h3>
+      <p>Только для доверенных администраторов.<br><br>Ваш Telegram ID:<br><code id="uid-display">—</code><br><br>Передайте этот ID владельцу бота.</p>
+    </div>
+  </div>
+  <div id="admin-panel" style="display:none">
+    <div class="adm-hdr">⚙️ Администратор <span class="adm-badge">ADMIN</span></div>
+    <div class="sg">
+      <div class="sc"><div class="sv" id="st-total">0</div><div class="sl">Всего объявлений</div></div>
+      <div class="sc warn"><div class="sv" id="st-pending">0</div><div class="sl">На модерации</div></div>
+      <div class="sc grn"><div class="sv" id="st-approved">0</div><div class="sl">Одобрено</div></div>
+      <div class="sc" style="border-color:#3d2d00"><div class="sv" style="color:var(--gold)" id="st-orig">0</div><div class="sl">⭐ Оригиналов</div></div>
+    </div>
+    <div class="adm-tabs">
+      <button class="adm-tab active" onclick="admTab('mod',this)">Модерация</button>
+      <button class="adm-tab" onclick="admTab('all',this)">Все</button>
+      <button class="adm-tab" onclick="admTab('users',this)">Пользователи</button>
+    </div>
+    <div id="adm-mod"></div>
+    <div id="adm-all" style="display:none"></div>
+    <div id="adm-users" style="display:none"></div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-top"><div class="modal-handle"></div></div>
+    <div id="modal-slider"></div>
+    <div class="mc">
+      <div id="modal-badge"></div>
+      <div class="mc-cat" id="m-cat"></div>
+      <div class="mc-title" id="m-title"></div>
+      <div class="mc-price" id="m-price"></div>
+      <div class="mc-desc" id="m-desc"></div>
+      <div class="mc-meta">
+        <div class="mc-meta-row"><span>📐 Размер</span><span id="m-size"></span></div>
+        <div class="mc-meta-row"><span>✨ Состояние</span><span id="m-cond"></span></div>
+        <div class="mc-meta-row"><span>📍 Город</span><span id="m-city"></span></div>
+        <div class="mc-meta-row"><span>👤 Автор</span><span id="m-author"></span></div>
+        <div class="mc-meta-row"><span>🕐 Добавлено</span><span id="m-date"></span></div>
+      </div>
+      <div class="mc-views" id="m-views"></div>
+      <div class="mc-btns">
+        <button class="btn-p" onclick="contactSeller()">✉️ Написать продавцу</button>
+        <button class="btn-s" id="modal-cart-btn" onclick="toggleCartModal()">🛒 Добавить в корзину</button>
+        <button class="btn-s" id="modal-fav-btn" onclick="toggleFavModal()">🤍 В избранное</button>
+        <button class="btn-s" onclick="shareAd()">🔗 Поделиться</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bnav">
+  <button class="nb active" id="nav-feed" onclick="showView('feed')"><span class="nb-icon">👗</span>Лента</button>
+  <button class="nb" id="nav-orig" onclick="showView('orig')"><span class="nb-icon">⭐</span>Оригиналы</button>
+  <button class="nb" id="nav-post" onclick="showView('post')"><span class="nb-icon">✏️</span>Подать</button>
+  <button class="nb" id="nav-fav" onclick="showView('fav')"><span class="nb-icon">❤️</span>Избранное</button>
+  <button class="nb" id="nav-profile" onclick="showView('profile')"><span class="nb-icon">👤</span>Профиль</button>
+  <button class="nb" id="nav-admin" onclick="showView('admin')" style="display:none"><span class="nb-icon">⚙️</span>Админ<span class="nb-dot" id="adm-dot"></span></button>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════
+// ▼ ВСТАВЬТЕ СВОЙ TELEGRAM ID ЗДЕСЬ ▼
+// Узнать ID: напишите @userinfobot в Telegram
+const ADMIN_IDS = [
+  123456789, // ← замените на свой реальный ID
+];
+// ▲ КОНЕЦ НАСТРОЕК ▲
+// ══════════════════════════════════════
+
+const COLORS=['#22d3ee','#f472b6','#4ade80','#fb923c','#a78bfa','#fbbf24','#34d399'];
+
+const DEMO=[
+  {id:1,cat:'Верхняя одежда',title:'Пуховик Canada Goose Expedition',desc:'Оригинал, размер M. Куплен в официальном магазине. Носили один сезон. Полный комплект с документами.',price:'85 000 ₽',city:'Москва',author:'@style_msk',date:'сегодня',status:'approved',views:214,userId:111,size:'M',cond:'Отличное',photos:[],isOrig:true,isFake:false},
+  {id:2,cat:'Сумки',title:'Сумка Louis Vuitton Neverfull MM',desc:'Монограмм канвас. Состояние идеальное. Есть чек и пыльник.',price:'120 000 ₽',city:'СПб',author:'@luxury_spb',date:'сегодня',status:'approved',views:189,userId:222,size:'Универсальный',cond:'Отличное',photos:[],isOrig:true,isFake:false},
+  {id:3,cat:'Обувь',title:'Кроссовки Nike Air Jordan 1 Retro',desc:'Jordan 1 Chicago, размер 42. Куплены в Sneakerhead. Носились 3 раза.',price:'35 000 ₽',city:'Москва',author:'@sneakers_ru',date:'вчера',status:'approved',views:302,userId:333,size:'42',cond:'Отличное',photos:[],isOrig:true,isFake:false},
+  {id:4,cat:'Футболки и топы',title:'Футболка Stone Island Logo',desc:'Тёмно-зелёная, размер L. Куплена этим летом.',price:'12 000 ₽',city:'Казань',author:'@stone_kzn',date:'вчера',status:'approved',views:87,userId:444,size:'L',cond:'Новое с бирками',photos:[],isOrig:false,isFake:false},
+  {id:5,cat:'Аксессуары',title:'Часы Rolex Submariner Date',desc:'116610LN, 2019 год. Полный комплект — коробка, документы, чек.',price:'950 000 ₽',city:'Москва',author:'@watches_msk',date:'3 дня назад',status:'approved',views:441,userId:666,size:'Универсальный',cond:'Отличное',photos:[],isOrig:true,isFake:false},
+  {id:6,cat:'Обувь',title:'Кроссовки Adidas Yeezy 350 V2',desc:'Yeezy Boost 350 V2 Zebra, размер 43. Куплены на Adidas.ru.',price:'28 000 ₽',city:'СПб',author:'@yeezy_spb',date:'только что',status:'pending',views:2,userId:999,size:'43',cond:'Новое с бирками',photos:[],isOrig:false,isFake:false},
+  {id:7,cat:'Аксессуары',title:'Очки Ray-Ban Aviator Classic',desc:'RB3025, линзы G-15, оправа золото. В идеальном состоянии.',price:'8 000 ₽',city:'Москва',author:'@glasses_msk',date:'только что',status:'pending',views:0,userId:1001,size:'Универсальный',cond:'Новое с бирками',photos:[],isOrig:false,isFake:false},
+];
+
+// localStorage
+function saveAds(){try{localStorage.setItem('z4_ads',JSON.stringify(ads));}catch(e){}}
+function loadAds(){try{const s=localStorage.getItem('z4_ads');if(s){ads=JSON.parse(s);return;}}catch(e){}ads=[...DEMO];saveAds();}
+function saveFavs(){try{localStorage.setItem('z4_favs',JSON.stringify([...favs]));}catch(e){}}
+function loadFavs(){try{const s=localStorage.getItem('z4_favs');if(s)favs=new Set(JSON.parse(s));}catch(e){}}
+function saveCart(){try{localStorage.setItem('z4_cart',JSON.stringify([...cart]));}catch(e){}}
+function loadCart(){try{const s=localStorage.getItem('z4_cart');if(s)cart=new Set(JSON.parse(s));}catch(e){}}
+
+let ads=[], favs=new Set(), cart=new Set();
+let curCat='Все', curQ='', curSort='new', origSort='new';
+let selCatV='', curAd=null, admTabV='mod';
+let photos=[], slIdx=0;
+
+// Telegram
+const tg=window.Telegram&&window.Telegram.WebApp;
+let me={id:0,name:'Гость',firstName:'Гость',username:''};
+if(tg){
+  tg.ready();tg.expand();
+  tg.setHeaderColor('#09090b');tg.setBackgroundColor('#09090b');
+  try{const u=tg.initDataUnsafe?.user;if(u)me={id:u.id,name:[u.first_name,u.last_name].filter(Boolean).join(' '),firstName:u.first_name||'Пользователь',username:u.username?'@'+u.username:''};}catch(e){}
+}
+const isAdmin=ADMIN_IDS.includes(me.id);
+if(isAdmin){document.getElementById('nav-admin').style.display='';document.getElementById('admin-topbtn').style.display='';}
+document.getElementById('uid-display').textContent=me.id||'Откройте через Telegram';
+
+loadAds();loadFavs();loadCart();
+updateCartBadge();updateDot();renderCards();
+
+// КАРТОЧКА
+function cardHtml(ad,i){
+  const color=COLORS[ad.id%COLORS.length];
+  const inits=ad.author.replace('@','').slice(0,2).toUpperCase();
+  const isFav=favs.has(ad.id), inCart=cart.has(ad.id);
+  const badge=ad.isOrig?'<div class="overlay-badge badge-orig">⭐ ОРИГИНАЛ</div>':ad.isFake?'<div class="overlay-badge badge-fake">⚠️ НЕ ОРИГИНАЛ</div>':'';
+  const photoBlock=ad.photos&&ad.photos.length
+    ?`<div class="card-photo-wrap"><img class="card-photo" src="${ad.photos[0]}" alt="">${badge}${ad.photos.length>1?`<div class="photo-cnt">📷 ${ad.photos.length}</div>`:''}</div>`
+    :`<div class="card-no-photo" style="position:relative">${badge}👗</div>`;
+  return `<div class="card${ad.isOrig?' orig-card':''}" onclick="openAd(${ad.id})" style="animation-delay:${Math.min(i,7)*.04}s">
+    <div class="card-ribbon" style="background:${color}"></div>
+    ${photoBlock}
+    <div class="card-body">
+      <div class="card-top"><span class="card-cat">${ad.cat}</span><span class="card-price">${ad.price}</span></div>
+      <div class="card-title">${ad.title}</div>
+      <div class="card-desc">${ad.desc}</div>
+      <div class="card-footer">
+        <div class="card-author"><div class="av" style="background:${color}">${inits}</div>${ad.author}${ad.size?' · '+ad.size:''}</div>
+        <span>📍${ad.city} · 👁${ad.views}</span>
+      </div>
+    </div>
+    <div class="card-btns" onclick="event.stopPropagation()">
+      <button class="ca-btn${isFav?' fav-on':''}" onclick="toggleFav(${ad.id})">${isFav?'❤️':'🤍'}</button>
+      <button class="ca-btn${inCart?' cart-on':''}" onclick="toggleCart(${ad.id})">${inCart?'🛒':'＋'}</button>
+    </div>
+  </div>`;
+}
+
+function sorted(list,s){
+  if(s==='price')return[...list].sort((a,b)=>(parseInt(a.price)||0)-(parseInt(b.price)||0));
+  if(s==='views')return[...list].sort((a,b)=>b.views-a.views);
+  return list;
+}
+
+function renderCards(cid='cards-container',list=null){
+  const el=document.getElementById(cid);
+  let items=list||ads.filter(a=>{
+    if(a.status!=='approved')return false;
+    const mc=curCat==='Все'||a.cat===curCat;
+    const q=curQ.toLowerCase();
+    return mc&&(!q||a.title.toLowerCase().includes(q)||a.desc.toLowerCase().includes(q));
+  });
+  items=sorted(items,curSort);
+  const tc=document.getElementById('total-count');if(tc)tc.textContent=items.length+' товаров';
+  el.innerHTML=items.length?items.map((ad,i)=>cardHtml(ad,i)).join(''):`<div class="empty"><div class="empty-icon">👗</div>Ничего не найдено</div>`;
+}
+
+function renderOrig(){
+  const items=sorted(ads.filter(a=>a.status==='approved'&&a.isOrig),origSort);
+  const tc=document.getElementById('orig-count');if(tc)tc.textContent=items.length+' товаров';
+  document.getElementById('orig-container').innerHTML=items.length?items.map((ad,i)=>cardHtml(ad,i)).join(''):`<div class="empty"><div class="empty-icon">⭐</div>Пока нет оригиналов</div>`;
+}
+
+function filterCat(cat,el){curCat=cat;document.querySelectorAll('#cat-tabs .tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');renderCards();}
+function filterCards(){curQ=document.getElementById('search-input').value;renderCards();}
+function setSort(s,el){curSort=s;document.querySelectorAll('#feed-view .sort-btn').forEach(b=>b.classList.remove('active'));el.classList.add('active');renderCards();}
+function setOrigSort(s,el){origSort=s;document.querySelectorAll('#orig-view .sort-btn').forEach(b=>b.classList.remove('active'));el.classList.add('active');renderOrig();}
+
+// ФОТО
+function handlePhotos(input){
+  const files=Array.from(input.files),room=10-photos.length;
+  if(files.length>room)showToast('Максимум 10 фото');
+  files.slice(0,room).forEach(f=>{const r=new FileReader();r.onload=e=>{photos.push(e.target.result);renderPhotoPreview();};r.readAsDataURL(f);});
+  input.value='';
+}
+function renderPhotoPreview(){
+  document.getElementById('photo-count').textContent=photos.length?photos.length+'/10 фото':'';
+  document.getElementById('photo-preview').innerHTML=photos.map((src,i)=>`<div class="pt"><img src="${src}"><button class="pt-del" onclick="removePhoto(${i})">✕</button></div>`).join('');
+}
+function removePhoto(i){photos.splice(i,1);renderPhotoPreview();}
+
+// КОРЗИНА
+function toggleCart(id){
+  cart.has(id)?(cart.delete(id),showToast('Убрано из корзины')):(cart.add(id),showToast('🛒 Добавлено'));
+  saveCart();updateCartBadge();renderCards();if(curAd&&curAd.id===id)updateModalBtns();
+}
+function toggleCartModal(){if(curAd)toggleCart(curAd.id);}
+function updateCartBadge(){const n=cart.size,el=document.getElementById('cart-count');el.style.display=n?'flex':'none';el.textContent=n;}
+function renderCart(){
+  const el=document.getElementById('cart-items');
+  const items=ads.filter(a=>cart.has(a.id));
+  if(!items.length){el.innerHTML=`<div class="empty"><div class="empty-icon">🛒</div>Корзина пуста<br><small style="font-size:12px">Добавляйте товары кнопкой ＋</small></div>`;return;}
+  let total=0;
+  const rows=items.map(ad=>{const n=parseInt(ad.price.replace(/\D/g,''));if(n)total+=n;
+    const img=ad.photos&&ad.photos.length?`<img class="ci-img" src="${ad.photos[0]}" style="width:52px;height:52px;object-fit:cover;border-radius:8px">`:`<div class="ci-img">👗</div>`;
+    return `<div class="ci">${img}<div class="ci-info"><div class="ci-t">${ad.title}</div><div class="ci-p">${ad.price}${ad.size?' · '+ad.size:''}</div></div><button class="ci-rm" onclick="toggleCart(${ad.id})">✕</button></div>`;
+  }).join('');
+  el.innerHTML=rows+`<div class="c-sum"><div class="c-row"><span>Товаров</span><span>${items.length}</span></div>${total?`<div class="c-row tot"><span>Итого</span><span>${total.toLocaleString('ru')} ₽</span></div>`:''}</div>
+  <button class="btn-p" style="width:100%;margin-bottom:8px" onclick="sendCart()">✉️ Написать продавцам</button>
+  <button class="btn-s" style="width:100%" onclick="clearCart()">🗑 Очистить</button>`;
+}
+function clearCart(){cart.clear();saveCart();updateCartBadge();renderCart();renderCards();showToast('Корзина очищена');}
+function sendCart(){
+  const items=ads.filter(a=>cart.has(a.id));if(!items.length)return;
+  const u=[...new Set(items.map(a=>a.author.replace('@','')))];
+  if(tg&&u.length===1)tg.openTelegramLink(`https://t.me/${u[0]}`);
+  else showToast('Продавцы: '+u.map(x=>'@'+x).join(', '));
+}
+
+// ИЗБРАННОЕ
+function toggleFav(id){
+  favs.has(id)?(favs.delete(id),showToast('Убрано из избранного')):(favs.add(id),showToast('❤️ В избранное'));
+  saveFavs();renderCards();renderFavs();if(curAd&&curAd.id===id)updateModalBtns();
+}
+function toggleFavModal(){if(curAd)toggleFav(curAd.id);}
+function renderFavs(){
+  const list=ads.filter(a=>favs.has(a.id)&&a.status==='approved');
+  document.getElementById('fav-container').innerHTML=list.length?list.map((ad,i)=>cardHtml(ad,i)).join(''):`<div class="empty"><div class="empty-icon">🤍</div>Нет избранных</div>`;
+}
+
+// ПРОФИЛЬ
+function renderProfile(){
+  const myAds=ads.filter(a=>a.userId===me.id||a.author===me.username);
+  const color=COLORS[Math.abs(me.id||1)%COLORS.length];
+  const inits=(me.firstName||'?').slice(0,2).toUpperCase();
+  const admBadge=isAdmin?`<div style="display:inline-block;background:var(--danger);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;margin-top:5px">АДМИНИСТРАТОР</div>`:'';
+  const rows=myAds.length?myAds.map(ad=>{
+    const sc={approved:'sp-a',pending:'sp-p',rejected:'sp-r'}[ad.status];
+    const sl={approved:'Опубликовано',pending:'На модерации',rejected:'Отклонено'}[ad.status];
+    return `<div class="my-row" onclick="openAd(${ad.id})"><div class="my-info"><div class="my-t">${ad.title}</div><div class="my-m">${ad.cat}${ad.size?' · '+ad.size:''} · ${ad.price}</div></div><span class="sp ${sc}">${sl}</span></div>`;
+  }).join(''):`<div class="empty" style="padding:20px 0"><div class="empty-icon" style="font-size:28px">👗</div>У вас нет объявлений</div>`;
+  document.getElementById('profile-content').innerHTML=`
+    <div class="p-hero"><div class="p-ava av" style="background:${color};width:60px;height:60px;font-size:22px">${inits}</div>
+      <div style="flex:1;min-width:0"><div class="p-name">${me.name||me.firstName}</div>${me.username?`<div class="p-un">${me.username}</div>`:''}<div class="p-id">Telegram ID: ${me.id||'недоступен'}</div>${admBadge}</div>
+    </div>
+    <div class="p-stats">
+      <div class="ps"><div class="ps-v">${myAds.length}</div><div class="ps-l">Объявлений</div></div>
+      <div class="ps"><div class="ps-v">${myAds.filter(a=>a.status==='approved').length}</div><div class="ps-l">Активных</div></div>
+      <div class="ps"><div class="ps-v">${favs.size}</div><div class="ps-l">Избранных</div></div>
+    </div>
+    <div class="sec-title">Мои объявления</div>${rows}
+    <div style="margin-top:14px"><button class="btn-s" style="width:100%" onclick="showView('post')">✏️ Подать новое объявление</button></div>`;
+}
+
+// МОДАЛКА
+function openAd(id){
+  curAd=ads.find(a=>a.id===id);if(!curAd)return;
+  curAd.views=(curAd.views||0)+1;saveAds();slIdx=0;
+  const ph=curAd.photos||[];
+  if(ph.length){
+    const imgs=ph.map((src,i)=>`<img src="${src}" class="${i===0?'on':''}">`).join('');
+    const nav=ph.length>1?`<button class="sl-btn sl-prev" onclick="slideBy(-1)">‹</button><button class="sl-btn sl-next" onclick="slideBy(1)">›</button><div class="slider-dots">${ph.map((_,i)=>`<div class="sdot${i===0?' on':''}" onclick="slideTo(${i})"></div>`).join('')}</div>`:'';
+    document.getElementById('modal-slider').innerHTML=`<div class="slider">${imgs}${nav}</div>`;
+  } else {
+    document.getElementById('modal-slider').innerHTML=`<div style="height:160px;background:var(--s2);display:flex;align-items:center;justify-content:center;font-size:52px">👗</div>`;
+  }
+  const mb=document.getElementById('modal-badge');
+  if(curAd.isOrig)mb.innerHTML=`<div class="orig-pill">⭐ ОРИГИНАЛ — подтверждено администраторами ZALET</div>`;
+  else if(curAd.isFake)mb.innerHTML=`<div class="fake-pill">⚠️ НЕ ОРИГИНАЛ — помечено администраторами ZALET</div>`;
+  else mb.innerHTML='';
+  document.getElementById('m-cat').textContent=curAd.cat;
+  document.getElementById('m-title').textContent=curAd.title;
+  document.getElementById('m-price').textContent=curAd.price;
+  document.getElementById('m-desc').textContent=curAd.desc;
+  document.getElementById('m-size').textContent=curAd.size||'—';
+  document.getElementById('m-cond').textContent=curAd.cond||'—';
+  document.getElementById('m-city').textContent=curAd.city;
+  document.getElementById('m-author').textContent=curAd.author;
+  document.getElementById('m-date').textContent=curAd.date;
+  document.getElementById('m-views').textContent=`👁 ${curAd.views} просмотров`;
+  updateModalBtns();
+  document.getElementById('modal').classList.add('open');
+  if(tg)tg.BackButton.show();
+}
+function slideTo(i){
+  const s=document.querySelector('.slider');if(!s)return;
+  const imgs=s.querySelectorAll('img'),dots=s.querySelectorAll('.sdot');
+  imgs.forEach(el=>el.classList.remove('on'));dots.forEach(el=>el.classList.remove('on'));
+  slIdx=Math.max(0,Math.min(i,imgs.length-1));
+  if(imgs[slIdx])imgs[slIdx].classList.add('on');
+  if(dots[slIdx])dots[slIdx].classList.add('on');
+}
+function slideBy(d){slideTo(slIdx+d);}
+function updateModalBtns(){
+  if(!curAd)return;
+  document.getElementById('modal-cart-btn').textContent=cart.has(curAd.id)?'🛒 Убрать из корзины':'🛒 Добавить в корзину';
+  document.getElementById('modal-fav-btn').textContent=favs.has(curAd.id)?'❤️ Убрать из избранного':'🤍 В избранное';
+}
+function closeModal(e){if(e.target.id==='modal'){document.getElementById('modal').classList.remove('open');if(tg)tg.BackButton.hide();}}
+function contactSeller(){if(!curAd)return;const u=curAd.author.replace('@','');if(tg)tg.openTelegramLink(`https://t.me/${u}`);else window.open(`https://t.me/${u}`,'_blank');}
+function shareAd(){if(!curAd)return;if(tg)tg.switchInlineQuery(curAd.title);else showToast('Скопировано!');}
+if(tg)tg.BackButton.onClick(()=>{document.getElementById('modal').classList.remove('open');tg.BackButton.hide();});
+
+// НАВИГАЦИЯ
+function showView(name){
+  ['feed','post','profile','cart','fav','admin','orig'].forEach(v=>{
+    document.getElementById(v+'-view').classList.toggle('active',v===name);
+    const nb=document.getElementById('nav-'+v);if(nb)nb.classList.toggle('active',v===name);
+  });
+  if(name==='fav')renderFavs();
+  if(name==='cart')renderCart();
+  if(name==='profile')renderProfile();
+  if(name==='admin')renderAdmin();
+  if(name==='orig')renderOrig();
+  window.scrollTo(0,0);
+}
+function goFeed(){showView('feed');document.getElementById('post-form').style.display='block';document.getElementById('success-msg').style.display='none';clearForm();}
+
+// ПОДАТЬ
+function selCat(el,cat){selCatV=cat;document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('sel'));el.classList.add('sel');}
+function cc(iId,cId,max){const l=document.getElementById(iId).value.length;const el=document.getElementById(cId);el.textContent=`${l}/${max}`;el.style.color=l>max*.9?'var(--warn)':'var(--muted)';}
+function clearForm(){
+  ['f-title','f-desc','f-price','f-city','f-contact'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('f-size').value='';document.getElementById('f-cond').value='';
+  selCatV='';photos=[];
+  document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('sel'));
+  document.getElementById('cc-t').textContent='0/80';document.getElementById('cc-d').textContent='0/500';
+  document.getElementById('photo-preview').innerHTML='';document.getElementById('photo-count').textContent='';
+}
+function submitAd(){
+  const title=document.getElementById('f-title').value.trim();
+  const desc=document.getElementById('f-desc').value.trim();
+  const price=document.getElementById('f-price').value.trim();
+  const city=document.getElementById('f-city').value.trim();
+  const contact=document.getElementById('f-contact').value.trim();
+  if(!selCatV||!title||!desc||!price||!city||!contact){const m='Заполните все поля и выберите категорию.';if(tg)tg.showAlert(m);else alert(m);return;}
+  const newAd={id:Date.now(),cat:selCatV,title,desc,price,city,size:document.getElementById('f-size').value,cond:document.getElementById('f-cond').value,author:contact.startsWith('@')?contact:'@'+contact,date:'только что',status:'pending',views:0,userId:me.id,photos:[...photos],isOrig:false,isFake:false};
+  ads.unshift(newAd);saveAds();updateDot();
+  document.getElementById('post-form').style.display='none';
+  document.getElementById('success-msg').style.display='block';
+  if(tg)tg.sendData(JSON.stringify({action:'new_ad',id:newAd.id,title,cat:selCatV,price,city,author:newAd.author}));
+}
+
+// АДМИН
+function renderAdmin(){
+  if(!isAdmin){document.getElementById('admin-locked').style.display='block';document.getElementById('admin-panel').style.display='none';return;}
+  document.getElementById('admin-locked').style.display='none';document.getElementById('admin-panel').style.display='block';
+  document.getElementById('st-total').textContent=ads.length;
+  document.getElementById('st-pending').textContent=ads.filter(a=>a.status==='pending').length;
+  document.getElementById('st-approved').textContent=ads.filter(a=>a.status==='approved').length;
+  document.getElementById('st-orig').textContent=ads.filter(a=>a.isOrig).length;
+  renderAdmTab(admTabV);
+}
+function admTab(name,el){
+  admTabV=name;document.querySelectorAll('.adm-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');
+  ['mod','all','users'].forEach(n=>document.getElementById('adm-'+n).style.display=n===name?'block':'none');
+  renderAdmTab(name);
+}
+function mcHtml(ad){
+  const photo=ad.photos&&ad.photos.length?`<img class="mc-card-photo" src="${ad.photos[0]}" alt="">`:'';
+  const origL=ad.isOrig?`<span style="color:var(--gold)">⭐ Оригинал</span> · `:ad.isFake?`<span style="color:var(--danger)">⚠️ Не оригинал</span> · `:'';
+  const icon={approved:'✅',pending:'⏳',rejected:'❌'}[ad.status]||'';
+  return `<div class="mc-card">${photo}<div class="mc-card-body">
+    <div class="mc-card-title">${icon} ${ad.title}</div>
+    <div class="mc-card-meta">${origL}${ad.cat} · ${ad.size||'—'} · ${ad.cond||'—'} · ${ad.price}<br>${ad.author} · 📍${ad.city}</div>
+    <div class="mc-card-desc">${ad.desc.slice(0,120)}…</div>
+    <div class="mc-acts">
+      ${ad.status!=='approved'?`<button class="mb mb-ok" onclick="modAd(${ad.id},'approved')">✅ Одобрить</button>`:''}
+      ${ad.status!=='rejected'?`<button class="mb mb-no" onclick="modAd(${ad.id},'rejected')">❌ Отклонить</button>`:''}
+      ${!ad.isOrig?`<button class="mb mb-orig" onclick="markOrig(${ad.id},true)">⭐ Оригинал</button>`:''}
+      ${!ad.isFake&&!ad.isOrig?`<button class="mb mb-fake" onclick="markOrig(${ad.id},false)">⚠️ Не оригинал</button>`:''}
+      ${ad.isOrig||ad.isFake?`<button class="mb mb-clr" onclick="clearMark(${ad.id})">✕ Убрать метку</button>`:''}
+      <button class="mb mb-del" onclick="delAd(${ad.id})">🗑</button>
+    </div>
+  </div></div>`;
+}
+function renderAdmTab(name){
+  if(name==='mod'){const list=ads.filter(a=>a.status==='pending');document.getElementById('adm-mod').innerHTML=list.length?list.map(mcHtml).join(''):`<div class="empty"><div class="empty-icon">✅</div>Нет объявлений на модерации</div>`;}
+  if(name==='all'){document.getElementById('adm-all').innerHTML=ads.map(mcHtml).join('')||`<div class="empty"><div class="empty-icon">📋</div>Нет объявлений</div>`;}
+  if(name==='users'){
+    const byUser={};ads.forEach(a=>{if(!byUser[a.userId])byUser[a.userId]={username:a.author,count:0};byUser[a.userId].count++;});
+    const rows=Object.entries(byUser).map(([uid,u])=>`<div class="u-row"><div><div style="font-weight:600">${u.username}</div><div style="font-size:11px;color:var(--muted)">ID: ${uid} · ${u.count} объявл.</div></div><button class="ban-btn" onclick="banUser(${uid})">Заблок.</button></div>`);
+    document.getElementById('adm-users').innerHTML=rows.length?rows.join(''):`<div class="empty"><div class="empty-icon">👤</div>Нет пользователей</div>`;
+  }
+}
+function modAd(id,status){
+  const ad=ads.find(a=>a.id===id);if(!ad)return;
+  ad.status=status;saveAds();
+  showToast(status==='approved'?'✅ Одобрено и сохранено':'❌ Отклонено и сохранено');
+  updateDot();renderAdmin();renderCards();
+  if(tg)tg.sendData(JSON.stringify({action:'moderate',id,status}));
+}
+function markOrig(id,isOrig){
+  const ad=ads.find(a=>a.id===id);if(!ad)return;
+  if(isOrig){ad.isOrig=true;ad.isFake=false;showToast('⭐ Помечено как оригинал');}
+  else{ad.isOrig=false;ad.isFake=true;showToast('⚠️ Помечено как не оригинал');}
+  saveAds();renderAdmin();renderCards();renderOrig();
+}
+function clearMark(id){const ad=ads.find(a=>a.id===id);if(!ad)return;ad.isOrig=false;ad.isFake=false;saveAds();showToast('Метка убрана');renderAdmin();renderCards();renderOrig();}
+function delAd(id){ads=ads.filter(a=>a.id!==id);saveAds();showToast('🗑 Удалено');renderAdmin();renderCards();}
+function banUser(uid){ads=ads.filter(a=>String(a.userId)!==String(uid));saveAds();showToast('🚫 Заблокирован, объявления удалены');renderAdmin();renderCards();}
+function updateDot(){const n=ads.filter(a=>a.status==='pending').length;const d=document.getElementById('adm-dot');if(d)d.style.display=n?'':'none';}
+
+// TOAST
+let toastT;
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2200);}
+</script>
+</body>
+</html>
